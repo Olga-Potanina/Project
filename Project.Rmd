@@ -12,9 +12,7 @@ library (tidyverse)
 ```
 
 ```{r}
- 
 info_healthy <- read_xlsx ("data/raw/final_health_statistic.xlsx")
-
 info_ibs <- read_xlsx ("data/raw/final_ibs_141_statistic.xlsx")
 
 ```
@@ -44,12 +42,28 @@ bacteria_ibs <- read_csv("data/raw/final_bacteria_ibs_141.csv")
 combined_bacteria <- bacteria_healthy %>% 
   bind_rows (bacteria_ibs) %>% 
   mutate(
-    patient_ID = as.factor (sub ("patient_", "", patient_ID)))
+    patient_ID = as.factor (sub ("patient_", "", patient_ID))
+    )
 
 ```
 
 ```{r, message=FALSE}
 final <- combined_bacteria %>% 
-  bind_cols(combined_info)
+  bind_cols(combined_info) %>% 
+  rename (patient_ID = "patient_ID...1")
+```
+
+
+```{r}
+final %>% 
+  select (where (function(x) sum (is.na(x))/ nrow(final) * 100 > 0)) %>% 
+  sapply (function(x) sum (is.na(x))/ nrow(final) * 100) %>% round(2) %>% 
+  as.data.frame() %>% 
+  rename(NA_percentage = ".") %>% 
+  mutate (
+    "Number of people with known data" = round (nrow(final) - NA_percentage/100 * nrow(final),1),
+    NA_percentage = paste (NA_percentage, "%", sep = " ")
+    )
+
 ```
 
