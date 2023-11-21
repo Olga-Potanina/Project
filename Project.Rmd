@@ -1,0 +1,55 @@
+---
+title: "Project"
+author: "Olga Potanina"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library (tidyverse)
+```
+
+```{r}
+ 
+info_healthy <- read_xlsx ("data/raw/final_health_statistic.xlsx")
+
+info_ibs <- read_xlsx ("data/raw/final_ibs_141_statistic.xlsx")
+
+```
+
+```{r}
+combined_info <- info_healthy %>% 
+  bind_rows(info_ibs) %>% 
+  mutate(
+    research_ID = as.factor(sub ("research_", "", research_ID)),
+    patient_ID = as.factor (sub ("patient_", "", patient_ID)),
+    Smoking = sub ("never", "Never",  Smoking),
+    Hygiene = case_when(
+      Hygiene == "Occasionally (1-2 times/week) cosmetics" ~ "Occasionally cosmetics (1-2 times/week)",
+      Hygiene == "Rarely (a few times/month) cosmetics" ~ "Rarely cosmetics (a few times/month)",
+      TRUE ~ Hygiene),
+    Physical_activity = sub ("regularly", "Regularly",  Smoking)
+    ) %>% 
+  mutate_if (is.character, as.factor) %>% 
+  select(-c(Instrument, Isolation_source, Assay_type, Target_gene, Main_Disease, Drugs, Social_status))
+
+```
+
+```{r, message = FALSE}
+bacteria_healthy <- read_csv("data/raw/final_bacteria_health.csv")
+bacteria_ibs <- read_csv("data/raw/final_bacteria_ibs_141.csv")
+
+combined_bacteria <- bacteria_healthy %>% 
+  bind_rows (bacteria_ibs) %>% 
+  mutate(
+    patient_ID = as.factor (sub ("patient_", "", patient_ID)))
+
+```
+
+```{r, message=FALSE}
+final <- combined_bacteria %>% 
+  bind_cols(combined_info)
+```
+
