@@ -19,19 +19,37 @@ info_ibs <- read_xlsx ("data/raw/final_ibs_141_statistic.xlsx")
 
 ```{r}
 combined_info <- info_healthy %>% 
-  bind_rows(info_ibs) %>% 
+  bind_rows(info_ibs) %>%
+  mutate (
+    BMI_min = ifelse (is.na (BMI_min), round (Weight_min /(Height_max/100 * Height_max/100), 2), BMI_min),
+    BMI_max = ifelse (is.na (BMI_max), round (Weight_max /(Height_min/100 * Height_min/100), 2), BMI_max)
+    ) %>% 
+  unite("BMI_range", BMI_min, BMI_max, sep = "-", na.rm = TRUE) %>%
   mutate(
     research_ID = as.factor(sub ("research_", "", research_ID)),
     patient_ID = as.factor (sub ("patient_", "", patient_ID)),
+    Sex = ifelse (Sex == "mixed", NA, Sex),
     Smoking = sub ("never", "Never",  Smoking),
     Hygiene = case_when(
       Hygiene == "Occasionally (1-2 times/week) cosmetics" ~ "Occasionally cosmetics (1-2 times/week)",
       Hygiene == "Rarely (a few times/month) cosmetics" ~ "Rarely cosmetics (a few times/month)",
       TRUE ~ Hygiene),
-    Physical_activity = sub ("regularly", "Regularly",  Smoking)
+    Physical_activity = sub ("regularly", "Regularly",  Smoking),
+    BMI = ifelse (is.na(Weight_kg), BMI, Weight_kg/ (Height_cm/100 * Height_cm/100)),
+    BMI_range = ifelse(BMI_range == "", NA, BMI_range),
+    BMI_category = case_when(
+      BMI_range == "18-25" ~ "normal/overweight",
+      BMI_range == "19.21-29.29" ~ "normal/overweight",
+      BMI_range == "20.6-29.6" ~ "normal/overweight",
+      BMI_range == "21.74-28.38" ~ "normal/overweight",
+      BMI_range == "18.5-30.8" ~ "normal/overweight", #немного больше 30
+      BMI < 18.5 ~ "underweight",
+      BMI >= 18.5 & BMI < 30 ~ "normal/overweight",
+      BMI >= 30 ~ "obese"
+    )
     ) %>% 
   mutate_if (is.character, as.factor) %>% 
-  select(-c(Instrument, Isolation_source, Assay_type, Target_gene, Main_Disease, Drugs, Social_status))
+  select(-c(Instrument, Isolation_source, Assay_type, Target_gene, Main_Disease, Drugs, Social_status, Weight_kg, Height_cm, Weight_min, Weight_max, Height_min, Height_max, BMI_range))
 
 ```
 
