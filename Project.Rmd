@@ -117,3 +117,7 @@ final_data_wide %>%
   arrange(desc (NA_percentage))
 
 ```
+- Сохранение `final_data_wide.rmd` в папке `originals`
+```{r}
+save(final_data_wide, file = "data/originals/final_data_wide.rmd")
+```
