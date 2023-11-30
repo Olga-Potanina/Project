@@ -95,7 +95,7 @@ combined_bacteria <- bacteria_healthy %>%
 
 ```
 
--   Объединение `combined_bacteria` и `combined_info` в `final_data_wide` c последующим сохранением в папке `originals`
+-   Объединение `combined_bacteria` и `combined_info` в `final_data_wide`
 
 ```{r final_data_wide, message=FALSE}
 final_data_wide <- combined_info %>% 
@@ -107,6 +107,18 @@ final_data_wide <- combined_info %>%
 file_path <- "data/originals/final_data_wide.csv"
 write_excel_csv(final_data_wide, file=file_path)
 ```
+
+- Перевод `final_data_wide` в длинный формат (`final_data_long`)
+```{r}
+final_data_long <- final_data_wide %>% 
+  pivot_longer(ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")),
+               names_to = "Taxon", 
+               values_to = "Percentage")
+
+#final_data_long не загружается на GitHub, т.к. слишком большой
+
+```
+
 
 ## Оценка доли NA и нулевых значений
 
