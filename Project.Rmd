@@ -78,7 +78,6 @@ combined_info <- info_healthy %>%
     Birth_Year, # имеются значения только в тех случаях, где возраст уже известен
     Age_range) # unique (combined_info$Age_range))) = 18-40, 23-28, 16-42, 21-43, 28-54
   )
-
 ```
 
 -   Загрузка датасетов с данными о микробиоме здоровых людей (`bacteria_healthy`) и пациентов с СРК (`bacteria_ibs`) и их объединение в `combined_bacteria`
@@ -92,7 +91,6 @@ combined_bacteria <- bacteria_healthy %>%
   mutate(
     patient_ID = as.factor (sub ("patient_", "", patient_ID))
     )
-
 ```
 
 -   Объединение `combined_bacteria` и `combined_info` в `final_data_wide`
@@ -104,19 +102,22 @@ final_data_wide <- combined_info %>%
   mutate(patient_ID...24 = NULL,
          patient_ID = row_number())
 
-file_path <- "data/originals/final_data_wide.csv"
-write_excel_csv(final_data_wide, file=file_path)
+write_rds(final_data_wide, 
+          file = "data/originals/final_data_wide.rds")
 ```
 
 - Перевод `final_data_wide` в длинный формат (`final_data_long`)
-```{r}
+
+```{r final_data_long}
 final_data_long <- final_data_wide %>% 
   pivot_longer(ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")),
                names_to = "Taxon", 
                values_to = "Percentage")
 
-#final_data_long не загружается на GitHub, т.к. слишком большой
-
+write_rds(final_data_long, 
+          file = "data/originals/final_data_long.rds",
+          compress = "gz" ) 
+#final_data_long не загружается на GitHub (слишком большой), поэтому был сжат
 ```
 
 
