@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
+library(openxlsx)
 library (tidyverse)
 ```
 
@@ -117,7 +118,62 @@ final_data_wide %>%
   arrange(desc (NA_percentage))
 
 ```
-- Сохранение `final_data_wide.rmd` в папке `originals`
+- Сохранение `final_data_wide.csv` в папке `originals`
 ```{r}
-save(final_data_wide, file = "data/originals/final_data_wide.rmd")
+file_path <- "data/originals/final_data_wide.csv"
+write_excel_csv(final_data_wide, file=file_path)
+
 ```
+
+- Рассчитаем процент не NA и не 0 данных по колонкам длинного формата
+
+```{r calculate percentage for each variable}
+# Устанавливаем порог процента 
+threshold_percent <- 101 # можно изменить процент в зависимости от нашего решения, пока выводим все переменные 
+ 
+# Функция для вычисления процента записей, не равных NA и не равных 0, для каждой колонки 
+calculate_percentage <- function(col) { 
+  sum(!is.na(col) & col != 0) / length(col) * 100 
+} 
+ 
+# Применяем функцию к каждой колонке в датасете 
+percentage_non_zero_non_na <- sapply(final_data_wide[, -1], calculate_percentage) 
+ 
+# Создаем датафрейм с результатами 
+result_df <- data.frame( 
+  column = names(percentage_non_zero_non_na), 
+  percentage = percentage_non_zero_non_na 
+) 
+ 
+# Отфильтровываем колонки, у которых процент записей менее threshold_percent% 
+filtered_columns <- result_df[result_df$percentage < threshold_percent, ]
+
+# Сохраним датасет в excel для дальнейшего анализа
+
+file_path <- "data/originals/percentage_by_vars.xlsx"
+write.xlsx(filtered_columns, file=file_path)
+```
+
+- Рассчитаем процент не NA и не 0 данных по форматированному patient_ID
+
+```{r}
+# Устанавливаем порог процента 
+threshold_percent <- 101 # можно изменить процент в зависимости от нашего решения, пока выводим все patient_ID 
+ 
+# Рассчитываем процент значений, не являющихся NA и не равных 0, для каждого пациента 
+percentage_non_zero_non_na <- rowMeans(!is.na(final_data_wide) & final_data_wide != 0, na.rm = TRUE) * 100 
+ 
+# Создаем датафрейм с результатами 
+result_df <- data.frame( 
+  patient_id = final_data_wide$patient_ID, 
+  percentage = percentage_non_zero_non_na 
+) 
+ 
+# Отфильтровываем пациентов, у которых процент значений менее 5% 
+filtered_patients <- result_df[result_df$percentage < threshold_percent, ] 
+
+# Сохраним датасет в excel для дальнейшего анализа 
+file_path <- "data/originals/percentage_by_patient.xlsx"
+write.xlsx(filtered_patients, file=file_path)
+```
+
