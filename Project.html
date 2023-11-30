@@ -11,7 +11,7 @@
 
 <meta name="author" content="Olga Potanina" />
 
-<meta name="date" content="2023-11-29" />
+<meta name="date" content="2023-11-30" />
 
 <title>Project</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Project</h1>
 <h4 class="author">Olga Potanina</h4>
-<h4 class="date">2023-11-29</h4>
+<h4 class="date">2023-11-30</h4>
 
 </div>
 
@@ -439,13 +439,17 @@ combined_bacteria &lt;- bacteria_healthy %&gt;%
     )</code></pre>
 <ul>
 <li>Объединение <code>combined_bacteria</code> и
-<code>combined_info</code> в <code>final_data_wide</code></li>
+<code>combined_info</code> в <code>final_data_wide</code> c последующим
+сохранением в папке <code>originals</code></li>
 </ul>
 <pre class="r"><code>final_data_wide &lt;- combined_info %&gt;% 
   bind_cols(combined_bacteria) %&gt;% 
   rename(patient_ID = patient_ID...2) %&gt;% 
   mutate(patient_ID...24 = NULL,
-         patient_ID = row_number())</code></pre>
+         patient_ID = row_number())
+
+file_path &lt;- &quot;data/originals/final_data_wide.csv&quot;
+write_excel_csv(final_data_wide, file=file_path)</code></pre>
 <ul>
 <li>Оценка доли NA в переменных <code>final_data_wide</code></li>
 </ul>
@@ -477,12 +481,6 @@ combined_bacteria &lt;- bacteria_healthy %&gt;%
 ## Smoking                  46.7 %                            203.1
 ## Physical_activity        46.7 %                            203.1
 ## BMI_category             23.1 %                            293.0</code></pre>
-<ul>
-<li>Сохранение <code>final_data_wide.csv</code> в папке
-<code>originals</code></li>
-</ul>
-<pre class="r"><code>file_path &lt;- &quot;data/originals/final_data_wide.csv&quot;
-write_excel_csv(final_data_wide, file=file_path)</code></pre>
 <ul>
 <li>Рассчитаем процент не NA и не 0 данных по колонкам длинного
 формата</li>
@@ -527,7 +525,7 @@ result_df &lt;- data.frame(
   percentage = percentage_non_zero_non_na 
 ) 
  
-# Отфильтровываем пациентов, у которых процент значений менее 5% 
+# Отфильтровываем пациентов, у которых процент значений менее threshold_percent% 
 filtered_patients &lt;- result_df[result_df$percentage &lt; threshold_percent, ] 
 
 # Сохраним датасет в excel для дальнейшего анализа 

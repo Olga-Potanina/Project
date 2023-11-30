@@ -12,6 +12,8 @@ library(openxlsx)
 library (tidyverse)
 ```
 
+## Чтение, слияние, редактирование исходных датасетов
+
 -   Загрузка датасетов с информацией о здоровых людях (`info_healthy`) и пациентах с СРК (`info_ibs`)
 
 ```{r, message=FALSE}
@@ -31,7 +33,7 @@ c ("Уникальные переменные в info_healthy:", info_healthy %>
 
 -   объединение `info_healthy` и `info_ibs` в единый датасет `combined_info` c редактированием содержимого
 
-```{r, message=FALSE}
+```{r combined_info, message=FALSE}
 combined_info <- info_healthy %>% 
   bind_rows(info_ibs) %>%
   mutate (
@@ -79,9 +81,9 @@ combined_info <- info_healthy %>%
 
 ```
 
-- Загрузка датасетов с данными о микробиоме здоровых людей (`bacteria_healthy`) и пациентов с СРК (`bacteria_ibs`) и их объединение в `combined_bacteria`
+-   Загрузка датасетов с данными о микробиоме здоровых людей (`bacteria_healthy`) и пациентов с СРК (`bacteria_ibs`) и их объединение в `combined_bacteria`
 
-```{r, message = FALSE}
+```{r combined_bacteria, message = FALSE}
 bacteria_healthy <- read_csv("data/raw/final_bacteria_health.csv")
 bacteria_ibs <- read_csv("data/raw/final_bacteria_ibs_141.csv")
 
@@ -93,17 +95,22 @@ combined_bacteria <- bacteria_healthy %>%
 
 ```
 
-- Объединение `combined_bacteria` и `combined_info` в `final_data_wide`
+-   Объединение `combined_bacteria` и `combined_info` в `final_data_wide` c последующим сохранением в папке `originals`
 
-```{r, message=FALSE}
+```{r final_data_wide, message=FALSE}
 final_data_wide <- combined_info %>% 
   bind_cols(combined_bacteria) %>% 
   rename(patient_ID = patient_ID...2) %>% 
   mutate(patient_ID...24 = NULL,
          patient_ID = row_number())
+
+file_path <- "data/originals/final_data_wide.csv"
+write_excel_csv(final_data_wide, file=file_path)
 ```
 
-- Оценка доли NA в переменных `final_data_wide`
+## Оценка доли NA и нулевых значений
+
+-   Оценка доли NA в переменных `final_data_wide`
 
 ```{r}
 final_data_wide %>% 
@@ -118,14 +125,8 @@ final_data_wide %>%
   arrange(desc (NA_percentage))
 
 ```
-- Сохранение `final_data_wide.csv` в папке `originals`
-```{r}
-file_path <- "data/originals/final_data_wide.csv"
-write_excel_csv(final_data_wide, file=file_path)
 
-```
-
-- Рассчитаем процент не NA и не 0 данных по колонкам длинного формата
+-   Рассчитаем процент не NA и не 0 данных по колонкам длинного формата
 
 ```{r calculate percentage for each variable}
 # Устанавливаем порог процента 
@@ -154,7 +155,7 @@ file_path <- "data/originals/percentage_by_vars.xlsx"
 write.xlsx(filtered_columns, file=file_path)
 ```
 
-- Рассчитаем процент не NA и не 0 данных по форматированному patient_ID
+-   Рассчитаем процент не NA и не 0 данных по форматированному patient_ID
 
 ```{r}
 # Устанавливаем порог процента 
@@ -169,11 +170,10 @@ result_df <- data.frame(
   percentage = percentage_non_zero_non_na 
 ) 
  
-# Отфильтровываем пациентов, у которых процент значений менее 5% 
+# Отфильтровываем пациентов, у которых процент значений менее threshold_percent% 
 filtered_patients <- result_df[result_df$percentage < threshold_percent, ] 
 
 # Сохраним датасет в excel для дальнейшего анализа 
 file_path <- "data/originals/percentage_by_patient.xlsx"
 write.xlsx(filtered_patients, file=file_path)
 ```
-
