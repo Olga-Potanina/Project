@@ -156,11 +156,13 @@ percentage_non_zero_non_na <- sapply(final_data_wide[, -1], calculate_percentage
 # Создаем датафрейм с результатами 
 result_df <- data.frame( 
   column = names(percentage_non_zero_non_na), 
-  percentage = percentage_non_zero_non_na 
-) 
+  percentage = round(100 - percentage_non_zero_non_na, 2) # percentage означает пропущенные или 0 значения
+)
+
+result_df_sort <- result_df %>% arrange(desc(percentage))
  
 # Отфильтровываем колонки, у которых процент записей менее threshold_percent% 
-filtered_columns <- result_df[result_df$percentage < threshold_percent, ]
+filtered_columns <- result_df_sort[result_df_sort$percentage < threshold_percent, ]
 
 # Сохраним датасет в excel для дальнейшего анализа
 
@@ -180,11 +182,13 @@ percentage_non_zero_non_na <- rowMeans(!is.na(final_data_wide) & final_data_wide
 # Создаем датафрейм с результатами 
 result_df <- data.frame( 
   patient_id = final_data_wide$patient_ID, 
-  percentage = percentage_non_zero_non_na 
+  percentage = round(100 - percentage_non_zero_non_na, 2) # percentage означает пропущенные или 0 значения
 ) 
  
+result_df_sort <- result_df %>% arrange(desc(percentage))
+
 # Отфильтровываем пациентов, у которых процент значений менее threshold_percent% 
-filtered_patients <- result_df[result_df$percentage < threshold_percent, ] 
+filtered_patients <- result_df_sort[result_df_sort$percentage < threshold_percent, ] 
 
 # Сохраним датасет в excel для дальнейшего анализа 
 file_path <- "data/originals/percentage_by_patient.xlsx"
