@@ -10,6 +10,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readxl)
 library(openxlsx)
 library (tidyverse)
+library(vegan)
+library(dplyr) 
+library(tidyr) 
+library(broom) 
 ```
 
 ## Чтение, слияние, редактирование исходных датасетов
@@ -194,3 +198,116 @@ filtered_patients <- result_df_sort[result_df_sort$percentage < threshold_percen
 file_path <- "data/originals/percentage_by_patient.xlsx"
 write.xlsx(filtered_patients, file=file_path)
 ```
+
+- Проведем множественное сравнение каждого таксона из combined_bacteria с по группе Health_state из combined_info.
+
+```{r}
+# Создание нового датасета для сохранения результатов
+result_dataset <- data.frame(
+  Variable_Name = character(),
+  Test_Type = character(),
+  P_Value = numeric(),
+  Normal_Distribution = character(),
+  stringsAsFactors = FALSE
+)
+
+# Сохранение названий переменных, где все наблюдения 0 или NA
+removed_variables <- colnames(combined_bacteria)[apply(combined_bacteria, 2, function(x) all(is.na(x) | x == 0))]
+cat("Removed Variables:", toString(removed_variables), "\n")
+
+# Удаление переменных из combined_bacteria
+combined_bacteria_clean <- combined_bacteria[, !colnames(combined_bacteria) %in% removed_variables]
+
+colnames(combined_bacteria_clean) <- gsub(" ", "_", colnames(combined_bacteria_clean))
+colnames(combined_bacteria_clean) <- gsub("-", "_", colnames(combined_bacteria_clean))
+
+# Объединяем датасеты по patient_id 
+combined_data <- left_join(combined_bacteria_clean, combined_info, by = "patient_ID") 
+
+# Получаем список переменных из датасета combined_bacteria, исключая "patient_ID"
+variable_names <- setdiff(names(combined_bacteria_clean), "patient_ID")
+
+# Проходим по каждой переменной
+for (variable in variable_names) {
+  # Фильтрация данных (исключаем строки с NA и 0 в текущей переменной)
+  filtered_data <- combined_data[!is.na(combined_data[[variable]]) & combined_data[[variable]] != 0, ]
+  #print(variable)
+  #print(filtered_data)
+
+  # Проверим что датасет filtered_data не пустой и что количество групп сравнения более 1, в нашем случае их 2 :)
+  if (nrow(filtered_data) > 0 & length(unique(filtered_data$Health_state)) > 1) {
+    
+  # Check if there is sufficient variability in the data
+  if (length(unique(filtered_data$Health_state)) > 1) {
+    # Проверка на нормальность
+    shapiro_test_result <- try(shapiro.test(filtered_data[[variable]]), silent = TRUE)
+    if (inherits(shapiro_test_result, "try-error")) {
+      warning(paste("Skipping Shapiro-Wilk test for variable", variable, "due to an error."))
+      next
+    }
+    p_value_shapiro <- shapiro_test_result$p.value
+
+    # Выбор соответствующего статистического теста
+    if (p_value_shapiro > 0.05) {
+      # Если нормальное распределение, провести дисперсионный анализ
+      model <- aov(filtered_data[[variable]] ~ Health_state, data = filtered_data)
+      summary_list <- summary(model)
+      test_type <- "ANOVA"
+    } else {
+      # Если не нормальное распределение, использовать тест Краскела-Уоллиса
+      tryCatch({
+        model <- kruskal.test(filtered_data[[variable]] ~ Health_state, data = filtered_data)
+        test_type <- "Kruskal-Wallis"
+      }, error = function(e) {
+        warning(paste("Skipping Kruskal-Wallis test for variable", variable, "due to an error:", conditionMessage(e)))
+        next
+      })
+    }
+
+    # Добавление результатов выбранного теста в датасет
+    result_dataset <- rbind(result_dataset, 
+                            data.frame(Variable_Name = variable,
+                                       Test_Type = test_type,
+                                       P_Value = round(ifelse(test_type == "ANOVA", summary_list[[1]]$"Pr(>F)"[1], model$p.value), 4),
+                                       Normal_Distribution = ifelse(p_value_shapiro > 0.05, "Yes", "No")))
+  } else {
+    # If there is no variability, skip the tests
+    warning(paste("Skipping tests for variable", variable, "as there is not enough variability in the data."))
+  }
+}}
+
+# Вывод результатов
+print(result_dataset)
+
+```
+
+
+-  Посмотрим на данные здоровых людей и людей с СРК как на многомерный вектор по всем таксонам и группам
+
+```{r}
+
+d <- dist(combined_bacteria) # euclidean distances between the rows
+fit <- cmdscale(d,eig=TRUE, k=2) # k is the number of dim
+
+df_mds <- data.frame(
+  x = fit$points[,1],
+  y = fit$points[,2]
+  )  
+
+df_full <- cbind(df_mds, combined_info) %>% mutate(Health_state_n = case_when(Health_state == "Health"  ~ 0,
+                                                                              Health_state == "Disease" ~ 1))
+
+ggplot(df_full, aes(x = x, y = y, color = Health_state)) +
+  geom_point() +
+  theme_bw() +
+  ggtitle("Распределение вектора таксонов в зависимости от группы пациентов")
+```
+
+# Используя метод пермутаций провери отличаются ли группы в зависимомти от Health_state
+
+```{r permanova}
+
+adonis2(d ~ Health_state_n, data = df_full)
+
+```
+
