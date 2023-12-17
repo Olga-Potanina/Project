@@ -21,23 +21,32 @@ library(broom)
 -   Загрузка датасетов с информацией о здоровых людях (`info_healthy`) и пациентах с СРК (`info_ibs`)
 
 ```{r, message=FALSE}
+
 info_healthy <- read_xlsx ("data/raw/final_health_statistic.xlsx")
 info_ibs <- read_xlsx ("data/raw/final_ibs_141_statistic.xlsx")
+
 ```
 
 -   Сравнение переменных в `info_healthy` и `info_ibs`
 
 ```{r, echo=FALSE}
-c ("Уникальные переменные в info_ibs:", info_ibs %>% 
-  select (- c (intersect (names(info_healthy), names(info_ibs)))) %>% colnames() )
 
-c ("Уникальные переменные в info_healthy:", info_healthy %>% 
+c ("Уникальные переменные в info_ibs:", info_ibs %>% 
   select (- c (intersect (names(info_healthy), names(info_ibs)))) %>% colnames())
+
 ```
 
--   объединение `info_healthy` и `info_ibs` в единый датасет `combined_info` c редактированием содержимого
+```{r}
+
+c ("Уникальные переменные в info_healthy:", info_healthy %>% 
+  select (- c (intersect (names(info_ibs), names(info_healthy)))) %>% colnames())
+
+```
+
+-   Объединение `info_healthy` и `info_ibs` в единый датасет `combined_info` c редактированием содержимого
 
 ```{r combined_info, message=FALSE}
+
 combined_info <- info_healthy %>% 
   bind_rows(info_ibs) %>%
   mutate (
@@ -82,11 +91,13 @@ combined_info <- info_healthy %>%
     Birth_Year, # имеются значения только в тех случаях, где возраст уже известен
     Age_range) # unique (combined_info$Age_range))) = 18-40, 23-28, 16-42, 21-43, 28-54
   )
+
 ```
 
 -   Загрузка датасетов с данными о микробиоме здоровых людей (`bacteria_healthy`) и пациентов с СРК (`bacteria_ibs`) и их объединение в `combined_bacteria`
 
 ```{r combined_bacteria, message = FALSE}
+
 bacteria_healthy <- read_csv("data/raw/final_bacteria_health.csv")
 bacteria_ibs <- read_csv("data/raw/final_bacteria_ibs_141.csv")
 
@@ -95,59 +106,46 @@ combined_bacteria <- bacteria_healthy %>%
   mutate(
     patient_ID = as.factor (sub ("patient_", "", patient_ID))
     )
+
 ```
 
 -   Объединение `combined_bacteria` и `combined_info` в `final_data_wide`
 
 ```{r final_data_wide, message=FALSE}
+
 final_data_wide <- combined_info %>% 
   bind_cols(combined_bacteria) %>% 
   rename(patient_ID = patient_ID...2) %>% 
   mutate(patient_ID...24 = NULL,
          patient_ID = row_number())
 
-write_rds(final_data_wide, 
-          file = "data/originals/final_data_wide.rds")
 ```
-
-- Перевод `final_data_wide` в длинный формат (`final_data_long`)
-
-```{r final_data_long}
-final_data_long <- final_data_wide %>% 
-  pivot_longer(ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")),
-               names_to = "Taxon", 
-               values_to = "Percentage")
-
-write_rds(final_data_long, 
-          file = "data/originals/final_data_long.rds",
-          compress = "gz" ) 
-#final_data_long не загружается на GitHub (слишком большой), поэтому был сжат
-```
-
 
 ## Оценка доли NA и нулевых значений
 
 -   Оценка доли NA в переменных `final_data_wide`
 
 ```{r}
+
 final_data_wide %>% 
   select (where (function(x) sum (is.na(x))/ nrow(final_data_wide) * 100 > 0)) %>% 
   sapply (function(x) sum (is.na(x))/ nrow(final_data_wide) * 100) %>% round(1) %>% 
   as.data.frame() %>% 
   rename(NA_percentage = ".") %>% 
   mutate (
-    "Number of people with known data" = round (nrow(final_data_wide) - NA_percentage/100 * nrow(final_data_wide),1),
+    "Number of people with known data" = round (nrow(final_data_wide) - NA_percentage/100 * nrow(final_data_wide)),
     NA_percentage = paste (NA_percentage, "%", sep = " ")
     ) %>% 
   arrange(desc (NA_percentage))
 
 ```
 
--   Рассчитаем процент не NA и не 0 данных по колонкам длинного формата
+-   Рассчитаем процент не NA и не 0 данных по колонкам широкого формата
 
 ```{r calculate percentage for each variable}
+
 # Устанавливаем порог процента 
-threshold_percent <- 101 # можно изменить процент в зависимости от нашего решения, пока выводим все переменные 
+threshold_percent <- 95 
  
 # Функция для вычисления процента записей, не равных NA и не равных 0, для каждой колонки 
 calculate_percentage <- function(col) { 
@@ -158,48 +156,80 @@ calculate_percentage <- function(col) {
 percentage_non_zero_non_na <- sapply(final_data_wide[, -1], calculate_percentage) 
  
 # Создаем датафрейм с результатами 
-result_df <- data.frame( 
+result_df_sort <- data.frame( 
   column = names(percentage_non_zero_non_na), 
   percentage = round(100 - percentage_non_zero_non_na, 2) # percentage означает пропущенные или 0 значения
-)
-
-result_df_sort <- result_df %>% arrange(desc(percentage))
+) %>% 
+  arrange(desc(percentage))
  
 # Отфильтровываем колонки, у которых процент записей менее threshold_percent% 
 filtered_columns <- result_df_sort[result_df_sort$percentage < threshold_percent, ]
 
 # Сохраним датасет в excel для дальнейшего анализа
-
 file_path <- "data/originals/percentage_by_vars.xlsx"
 write.xlsx(filtered_columns, file=file_path)
+
+# Перезапись final_data_wide с удалением колонок с процентом NA/0 более threshold_percent 
+final_data_wide <- final_data_wide %>% 
+  select (row.names(filtered_columns))
+
 ```
 
 -   Рассчитаем процент не NA и не 0 данных по форматированному patient_ID
 
 ```{r}
 # Устанавливаем порог процента 
-threshold_percent <- 101 # можно изменить процент в зависимости от нашего решения, пока выводим все patient_ID 
+threshold_percent <- 95
  
 # Рассчитываем процент значений, не являющихся NA и не равных 0, для каждого пациента 
 percentage_non_zero_non_na <- rowMeans(!is.na(final_data_wide) & final_data_wide != 0, na.rm = TRUE) * 100 
  
 # Создаем датафрейм с результатами 
-result_df <- data.frame( 
+result_df_sort <- data.frame( 
   patient_id = final_data_wide$patient_ID, 
   percentage = round(100 - percentage_non_zero_non_na, 2) # percentage означает пропущенные или 0 значения
-) 
- 
-result_df_sort <- result_df %>% arrange(desc(percentage))
+) %>% arrange(desc(percentage))
 
 # Отфильтровываем пациентов, у которых процент значений менее threshold_percent% 
 filtered_patients <- result_df_sort[result_df_sort$percentage < threshold_percent, ] 
 
 # Сохраним датасет в excel для дальнейшего анализа 
 file_path <- "data/originals/percentage_by_patient.xlsx"
-write.xlsx(filtered_patients, file=file_path)
+write.xlsx(filtered_patients, file=file_path) 
+
+# Перезапись final_data_wide с удалением строк с процентом NA/0 более threshold_percent 
+final_data_wide <- final_data_wide %>% 
+  slice (filtered_patients$patient_id) #при threshold_percent = 95%, изменения final_data_wide не происходит, так как нет пациентов с процентом NA/0 более 95%
+
 ```
 
-- Проведем множественное сравнение каждого таксона из combined_bacteria с по группе Health_state из combined_info.
+-   Сохранение final_data_wide после удаления колонок и строк с процентом NA/0 более threshold_percent
+
+```{r}
+write_rds(final_data_wide, 
+          file = "data/originals/final_data_wide.rds")
+
+```
+
+-   Перевод `final_data_wide` в длинный формат (`final_data_long`)
+
+```{r final_data_long}
+
+final_data_long <- final_data_wide %>% 
+  pivot_longer(ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")),
+               names_to = "Taxon", 
+               values_to = "Percentage")
+
+write_rds(final_data_long, 
+          file = "data/originals/final_data_long.rds",
+          compress = "gz" ) 
+#final_data_long не загружается на GitHub (слишком большой), поэтому был сжат
+
+```
+
+## Факторный анализ
+
+-   Проведем множественное сравнение каждого таксона из combined_bacteria с по группе Health_state из combined_info.
 
 ```{r}
 # Создание нового датасета для сохранения результатов
@@ -281,8 +311,7 @@ print(result_dataset)
 
 ```
 
-
--  Посмотрим на данные здоровых людей и людей с СРК как на многомерный вектор по всем таксонам и группам
+-   Посмотрим на данные здоровых людей и людей с СРК как на многомерный вектор по всем таксонам и группам
 
 ```{r}
 
@@ -303,11 +332,10 @@ ggplot(df_full, aes(x = x, y = y, color = Health_state)) +
   ggtitle("Распределение вектора таксонов в зависимости от группы пациентов")
 ```
 
-# Используя метод пермутаций провери отличаются ли группы в зависимомти от Health_state
+-   Используя метод пермутаций провери отличаются ли группы в зависимомти от Health_state
 
 ```{r permanova}
 
 adonis2(d ~ Health_state_n, data = df_full)
 
 ```
-
