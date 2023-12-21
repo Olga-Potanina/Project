@@ -370,14 +370,16 @@ info_ibs &lt;- read_xlsx (&quot;data/raw/final_ibs_141_statistic.xlsx&quot;)</co
 <li>Сравнение переменных в <code>info_healthy</code> и
 <code>info_ibs</code></li>
 </ul>
-<pre><code>## [1] &quot;Уникальные переменные в info_ibs:&quot; &quot;Main_Disease&quot;                     
-## [3] &quot;Weight_kg&quot;                         &quot;Height_cm&quot;                        
-## [5] &quot;BMI&quot;                               &quot;Diet_type&quot;                        
-## [7] &quot;Diet_duration&quot;                     &quot;Additive_usage&quot;</code></pre>
-<pre class="r"><code>c (&quot;Уникальные переменные в info_healthy:&quot;, info_healthy %&gt;% 
-  select (- c (intersect (names(info_ibs), names(info_healthy)))) %&gt;% colnames())</code></pre>
-<pre><code>## [1] &quot;Уникальные переменные в info_healthy:&quot;
-## [2] &quot;Drugs&quot;</code></pre>
+<pre><code>## Уникальные переменные в info_ibs:
+## Main_Disease
+## Weight_kg
+## Height_cm
+## BMI
+## Diet_type
+## Diet_duration
+## Additive_usage
+## Уникальные переменные в info_healthy:
+## Drugs</code></pre>
 <ul>
 <li>Объединение <code>info_healthy</code> и <code>info_ibs</code> в
 единый датасет <code>combined_info</code> c редактированием
@@ -427,6 +429,8 @@ info_ibs &lt;- read_xlsx (&quot;data/raw/final_ibs_141_statistic.xlsx&quot;)</co
     Birth_Year, # имеются значения только в тех случаях, где возраст уже известен
     Age_range) # unique (combined_info$Age_range))) = 18-40, 23-28, 16-42, 21-43, 28-54
   )
+
+rm (info_healthy, info_ibs)
 
 summary (combined_info)</code></pre>
 <pre><code>##  research_ID   patient_ID  Seq_region     Seq_date     Health_state
@@ -496,9 +500,9 @@ bacteria_ibs &lt;- read_csv(&quot;data/raw/final_bacteria_ibs_141.csv&quot;)
 
 combined_bacteria &lt;- bacteria_healthy %&gt;% 
   bind_rows (bacteria_ibs) %&gt;% 
-  mutate(
-    patient_ID = row_number()
-    )</code></pre>
+  mutate(patient_ID = row_number())
+
+rm (bacteria_healthy, bacteria_ibs)</code></pre>
 <ul>
 <li>Объединение <code>combined_bacteria</code> и
 <code>combined_info</code> в <code>final_data_wide</code></li>
