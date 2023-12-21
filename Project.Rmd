@@ -92,6 +92,8 @@ combined_info <- info_healthy %>%
     Age_range) # unique (combined_info$Age_range))) = 18-40, 23-28, 16-42, 21-43, 28-54
   )
 
+summary (combined_info)
+
 ```
 
 -   Загрузка датасетов с данными о микробиоме здоровых людей (`bacteria_healthy`) и пациентов с СРК (`bacteria_ibs`) и их объединение в `combined_bacteria`
@@ -166,12 +168,12 @@ result_df_sort <- data.frame(
 filtered_columns <- result_df_sort[result_df_sort$percentage < threshold_percent, ]
 
 # Сохраним датасет в excel для дальнейшего анализа
-file_path <- "data/originals/percentage_by_vars.xlsx"
-write.xlsx(filtered_columns, file=file_path)
+write.xlsx(filtered_columns, 
+           file = "data/originals/percentage_by_vars.xlsx")
 
-# Перезапись final_data_wide с удалением колонок с процентом NA/0 более threshold_percent 
+# Перезапись final_data_wide с выбором колонок с процентом NA/0 менее threshold_percent 
 final_data_wide <- final_data_wide %>% 
-  select (row.names(filtered_columns))
+  select (row.names(filtered_columns), research_ID)
 
 ```
 
@@ -194,8 +196,8 @@ result_df_sort <- data.frame(
 filtered_patients <- result_df_sort[result_df_sort$percentage < threshold_percent, ] 
 
 # Сохраним датасет в excel для дальнейшего анализа 
-file_path <- "data/originals/percentage_by_patient.xlsx"
-write.xlsx(filtered_patients, file=file_path) 
+write.xlsx(filtered_patients,
+           file = "data/originals/percentage_by_patient.xlsx") 
 
 # Перезапись final_data_wide с удалением строк с процентом NA/0 более threshold_percent 
 final_data_wide <- final_data_wide %>% 
@@ -206,6 +208,11 @@ final_data_wide <- final_data_wide %>%
 -   Сохранение final_data_wide после удаления колонок и строк с процентом NA/0 более threshold_percent
 
 ```{r}
+final_data_wide <- 
+  final_data_wide %>% 
+  select (patient_ID, any_of (colnames(combined_info)), everything()) %>% 
+  arrange(patient_ID)
+
 write_rds(final_data_wide, 
           file = "data/originals/final_data_wide.rds")
 
