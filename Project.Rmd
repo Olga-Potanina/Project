@@ -56,8 +56,8 @@ combined_info <- info_healthy %>%
   unite("BMI_range", BMI_min, BMI_max, sep = "-", na.rm = TRUE) %>%
   unite ("Age_range", Age_min, Age_max, sep = "-", na.rm = TRUE) %>%
   mutate(
-    research_ID = as.factor(sub ("research_", "", research_ID)),
-    patient_ID = as.factor (sub ("patient_", "", patient_ID)),
+    research_ID = sub ("research_", "", research_ID),
+    patient_ID = row_number(),
     Sex = ifelse (Sex == "mixed", NA, Sex),
     Smoking = sub ("never", "Never",  Smoking),
     Alcohol = sub ("rarely", "Rarely", Alcohol),
@@ -105,9 +105,7 @@ bacteria_ibs <- read_csv("data/raw/final_bacteria_ibs_141.csv")
 
 combined_bacteria <- bacteria_healthy %>% 
   bind_rows (bacteria_ibs) %>% 
-  mutate(
-    patient_ID = as.factor (sub ("patient_", "", patient_ID))
-    )
+  mutate(patient_ID = row_number())
 
 ```
 
@@ -118,8 +116,7 @@ combined_bacteria <- bacteria_healthy %>%
 final_data_wide <- combined_info %>% 
   bind_cols(combined_bacteria) %>% 
   rename(patient_ID = patient_ID...2) %>% 
-  mutate(patient_ID...24 = NULL,
-         patient_ID = row_number())
+  mutate(patient_ID...24 = NULL)
 
 ```
 
@@ -175,9 +172,11 @@ write.xlsx(filtered_columns,
 final_data_wide <- final_data_wide %>% 
   select (row.names(filtered_columns), research_ID)
 
+rm (calculate_percentage, result_df_sort)
+
 ```
 
--   Рассчитаем процент не NA и не 0 данных по форматированному patient_ID
+-   Рассчитаем процент не NA и не 0 данных по форматированному `patient_ID`
 
 ```{r}
 # Устанавливаем порог процента 
@@ -203,9 +202,11 @@ write.xlsx(filtered_patients,
 final_data_wide <- final_data_wide %>% 
   slice (filtered_patients$patient_id) #при threshold_percent = 95%, изменения final_data_wide не происходит, так как нет пациентов с процентом NA/0 более 95%
 
+rm (percentage_non_zero_non_na, result_df_sort)
+
 ```
 
--   Сохранение final_data_wide после удаления колонок и строк с процентом NA/0 более threshold_percent
+-   Сохранение `final_data_wide` после удаления колонок и строк с процентом NA/0 более threshold_percent
 
 ```{r}
 final_data_wide <- 
@@ -236,7 +237,7 @@ write_rds(final_data_long,
 
 ## Факторный анализ
 
--   Проведем множественное сравнение каждого таксона из combined_bacteria с по группе Health_state из combined_info.
+-   Проведем множественное сравнение каждого таксона из `combined_bacteria` с по группе `Health_state` из `combined_info`
 
 ```{r}
 # Создание нового датасета для сохранения результатов
