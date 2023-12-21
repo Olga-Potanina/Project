@@ -85,11 +85,11 @@ combined_info <- info_healthy %>%
     Drugs, # unique (combined_info$Drugs) = NA
     Social_status, # unique (combined_info$Social_status) =  NA, urban 
     Weight_kg, Height_cm, Weight_min, Weight_max, Height_min, Height_max, BMI_range, #использованы для создания BMI_category, уменьшения количества NA в BMI
+    BMI, # NA у всех здоровых
     Birth_Year, # имеются значения только в тех случаях, где возраст уже известен
-    Age_range) # unique (combined_info$Age_range))) = 18-40, 23-28, 16-42, 21-43, 28-54
-  )
-
-rm (info_healthy, info_ibs)
+    Age_range, # unique (combined_info$Age_range))) = 18-40, 23-28, 16-42, 21-43, 28-54
+    Pets_type # только cat и NA
+  ))
 
 summary (combined_info)
 
@@ -98,10 +98,13 @@ summary (combined_info)
 ```{r}
 
 library(gtsummary)
+
 combined_info %>% 
-  select(-patient_ID) %>% 
-  tbl_summary(digits = list(all_continuous() ~ c(1, 1),
-                                 all_categorical() ~ c(0, 1)),
+  select(! c(patient_ID,
+              Diet_duration, Additive_usage, Diet_type #у всех здоровых данные переменные = NA
+              )) %>% 
+  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
+                            all_categorical() ~ c(0, 0)),
               by = Health_state) %>%
   add_p()
 
@@ -129,7 +132,7 @@ rm (bacteria_healthy, bacteria_ibs)
 final_data_wide <- combined_info %>% 
   bind_cols(combined_bacteria) %>% 
   rename(patient_ID = patient_ID...2) %>% 
-  mutate(patient_ID...24 = NULL)
+  mutate(patient_ID...22 = NULL)
 
 ```
 

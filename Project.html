@@ -489,11 +489,11 @@ info_ibs &lt;- read_xlsx (&quot;data/raw/final_ibs_141_statistic.xlsx&quot;)</co
     Drugs, # unique (combined_info$Drugs) = NA
     Social_status, # unique (combined_info$Social_status) =  NA, urban 
     Weight_kg, Height_cm, Weight_min, Weight_max, Height_min, Height_max, BMI_range, #использованы для создания BMI_category, уменьшения количества NA в BMI
+    BMI, # NA у всех здоровых
     Birth_Year, # имеются значения только в тех случаях, где возраст уже известен
-    Age_range) # unique (combined_info$Age_range))) = 18-40, 23-28, 16-42, 21-43, 28-54
-  )
-
-rm (info_healthy, info_ibs)
+    Age_range, # unique (combined_info$Age_range))) = 18-40, 23-28, 16-42, 21-43, 28-54
+    Pets_type # только cat и NA
+  ))
 
 summary (combined_info)</code></pre>
 <pre><code>##  research_ID   patient_ID  Seq_region     Seq_date     Health_state
@@ -536,52 +536,50 @@ summary (combined_info)</code></pre>
 ##                          Regularly cosmetics (3-5 times/week)   :  6  
 ##                          NA&#39;s                                   :295  
 ##                                                                       
-##  Pets_type    Sleep_duration      BMI        Diet_type  Diet_duration
-##  Cat : 84   &gt; 8 hours:  9    Min.   :18.37   10.0: 13   3.0 :  8     
-##  NA&#39;s:297   4-6 hours:  9    1st Qu.:22.68   5.0 :  5   6.0 :  5     
-##             6-7 hours: 31    Median :23.51   NA&#39;s:363   NA&#39;s:368     
-##             7-8 hours: 38    Mean   :24.31                           
-##             NA&#39;s     :294    3rd Qu.:26.10                           
-##                              Max.   :36.00                           
-##                              NA&#39;s   :335                             
-##  Additive_usage            BMI_category
-##  22.0:  1       normal/overweight:287  
-##  23.0:  1       obese            :  5  
-##  4.0 :  9       underweight      :  1  
-##  NA&#39;s:370       NA&#39;s             : 88  
-##                                        
-##                                        
+##    Sleep_duration Diet_type  Diet_duration Additive_usage
+##  &gt; 8 hours:  9    10.0: 13   3.0 :  8      22.0:  1      
+##  4-6 hours:  9    5.0 :  5   6.0 :  5      23.0:  1      
+##  6-7 hours: 31    NA&#39;s:363   NA&#39;s:368      4.0 :  9      
+##  7-8 hours: 38                             NA&#39;s:370      
+##  NA&#39;s     :294                                           
+##                                                          
+##                                                          
+##             BMI_category
+##  normal/overweight:287  
+##  obese            :  5  
+##  underweight      :  1  
+##  NA&#39;s             : 88  
+##                         
+##                         
 ## </code></pre>
-<pre class="r"><code>library(gtsummary)</code></pre>
-<pre><code>## #BlackLivesMatter</code></pre>
-<pre class="r"><code>combined_info %&gt;% 
-  select(-patient_ID) %&gt;% 
-  tbl_summary(digits = list(all_continuous() ~ c(1, 1),
-                                 all_categorical() ~ c(0, 1)),
+<pre class="r"><code>library(gtsummary)
+
+combined_info %&gt;% 
+  select(! c(patient_ID,
+              Diet_duration, Additive_usage, Diet_type #у всех здоровых данные переменные = NA
+              )) %&gt;% 
+  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
+                            all_categorical() ~ c(0, 0)),
               by = Health_state) %&gt;%
   add_p()</code></pre>
 <pre><code>## There was an error in &#39;add_p()/add_difference()&#39; for variable &#39;Country&#39;, p-value omitted:
 ## Error in stats::fisher.test(structure(c(3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, : FEXACT ошибка 7(location). LDSTP=18570 слишком маленький для этой проблемы,
 ##   (pastp=9.92447, ipn_0:=ipoin[itp=150]=5884, stp[ipn_0]=8.95803).
 ## Увеличьте рабочее пространство или попробуйте использовать &#39;simulate.p.value=TRUE&#39;</code></pre>
-<pre><code>## There was an error in &#39;add_p()/add_difference()&#39; for variable &#39;Pets_type&#39;, p-value omitted:
-## Error in stats::chisq.test(x = structure(c(NA, NA, NA, NA, NA, NA, NA, : &#39;x&#39; и &#39;y&#39; должен иметь как минимум 2 уровня</code></pre>
-<pre><code>## There was an error in &#39;add_p()/add_difference()&#39; for variable &#39;BMI&#39;, p-value omitted:
-## Error in wilcox.test.formula(as.numeric(BMI) ~ as.factor(Health_state), : группирующий фактор должен иметь в точности 2 уровня</code></pre>
-<div id="odiudwyvdd" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#odiudwyvdd table {
+<div id="rkklnmzlnk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#rkklnmzlnk table {
 font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-#odiudwyvdd thead, #odiudwyvdd tbody, #odiudwyvdd tfoot, #odiudwyvdd tr, #odiudwyvdd td, #odiudwyvdd th {
+#rkklnmzlnk thead, #rkklnmzlnk tbody, #rkklnmzlnk tfoot, #rkklnmzlnk tr, #rkklnmzlnk td, #rkklnmzlnk th {
 border-style: none;
 }
-#odiudwyvdd p {
+#rkklnmzlnk p {
 margin: 0;
 padding: 0;
 }
-#odiudwyvdd .gt_table {
+#rkklnmzlnk .gt_table {
 display: table;
 border-collapse: collapse;
 line-height: normal;
@@ -606,11 +604,11 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#odiudwyvdd .gt_caption {
+#rkklnmzlnk .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#odiudwyvdd .gt_title {
+#rkklnmzlnk .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -621,7 +619,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#odiudwyvdd .gt_subtitle {
+#rkklnmzlnk .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -632,7 +630,7 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#odiudwyvdd .gt_heading {
+#rkklnmzlnk .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -643,12 +641,12 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#odiudwyvdd .gt_bottom_border {
+#rkklnmzlnk .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#odiudwyvdd .gt_col_headings {
+#rkklnmzlnk .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -662,7 +660,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#odiudwyvdd .gt_col_heading {
+#rkklnmzlnk .gt_col_heading {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -681,7 +679,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#odiudwyvdd .gt_column_spanner_outer {
+#rkklnmzlnk .gt_column_spanner_outer {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -692,13 +690,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#odiudwyvdd .gt_column_spanner_outer:first-child {
+#rkklnmzlnk .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#odiudwyvdd .gt_column_spanner_outer:last-child {
+#rkklnmzlnk .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#odiudwyvdd .gt_column_spanner {
+#rkklnmzlnk .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -709,10 +707,10 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#odiudwyvdd .gt_spanner_row {
+#rkklnmzlnk .gt_spanner_row {
 border-bottom-style: hidden;
 }
-#odiudwyvdd .gt_group_heading {
+#rkklnmzlnk .gt_group_heading {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -737,7 +735,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#odiudwyvdd .gt_empty_group_heading {
+#rkklnmzlnk .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -751,13 +749,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#odiudwyvdd .gt_from_md > :first-child {
+#rkklnmzlnk .gt_from_md > :first-child {
 margin-top: 0;
 }
-#odiudwyvdd .gt_from_md > :last-child {
+#rkklnmzlnk .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#odiudwyvdd .gt_row {
+#rkklnmzlnk .gt_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -775,7 +773,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#odiudwyvdd .gt_stub {
+#rkklnmzlnk .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -787,7 +785,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#odiudwyvdd .gt_stub_row_group {
+#rkklnmzlnk .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -800,13 +798,13 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#odiudwyvdd .gt_row_group_first td {
+#rkklnmzlnk .gt_row_group_first td {
 border-top-width: 2px;
 }
-#odiudwyvdd .gt_row_group_first th {
+#rkklnmzlnk .gt_row_group_first th {
 border-top-width: 2px;
 }
-#odiudwyvdd .gt_summary_row {
+#rkklnmzlnk .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -815,14 +813,14 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#odiudwyvdd .gt_first_summary_row {
+#rkklnmzlnk .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#odiudwyvdd .gt_first_summary_row.thick {
+#rkklnmzlnk .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#odiudwyvdd .gt_last_summary_row {
+#rkklnmzlnk .gt_last_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -831,7 +829,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#odiudwyvdd .gt_grand_summary_row {
+#rkklnmzlnk .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -840,7 +838,7 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#odiudwyvdd .gt_first_grand_summary_row {
+#rkklnmzlnk .gt_first_grand_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -849,7 +847,7 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#odiudwyvdd .gt_last_grand_summary_row_top {
+#rkklnmzlnk .gt_last_grand_summary_row_top {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -858,10 +856,10 @@ border-bottom-style: double;
 border-bottom-width: 6px;
 border-bottom-color: #D3D3D3;
 }
-#odiudwyvdd .gt_striped {
+#rkklnmzlnk .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#odiudwyvdd .gt_table_body {
+#rkklnmzlnk .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -869,7 +867,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#odiudwyvdd .gt_footnotes {
+#rkklnmzlnk .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -882,7 +880,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#odiudwyvdd .gt_footnote {
+#rkklnmzlnk .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-top: 4px;
@@ -890,7 +888,7 @@ padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#odiudwyvdd .gt_sourcenotes {
+#rkklnmzlnk .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -903,57 +901,57 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#odiudwyvdd .gt_sourcenote {
+#rkklnmzlnk .gt_sourcenote {
 font-size: 90%;
 padding-top: 4px;
 padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#odiudwyvdd .gt_left {
+#rkklnmzlnk .gt_left {
 text-align: left;
 }
-#odiudwyvdd .gt_center {
+#rkklnmzlnk .gt_center {
 text-align: center;
 }
-#odiudwyvdd .gt_right {
+#rkklnmzlnk .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#odiudwyvdd .gt_font_normal {
+#rkklnmzlnk .gt_font_normal {
 font-weight: normal;
 }
-#odiudwyvdd .gt_font_bold {
+#rkklnmzlnk .gt_font_bold {
 font-weight: bold;
 }
-#odiudwyvdd .gt_font_italic {
+#rkklnmzlnk .gt_font_italic {
 font-style: italic;
 }
-#odiudwyvdd .gt_super {
+#rkklnmzlnk .gt_super {
 font-size: 65%;
 }
-#odiudwyvdd .gt_footnote_marks {
+#rkklnmzlnk .gt_footnote_marks {
 font-size: 75%;
 vertical-align: 0.4em;
 position: initial;
 }
-#odiudwyvdd .gt_asterisk {
+#rkklnmzlnk .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#odiudwyvdd .gt_indent_1 {
+#rkklnmzlnk .gt_indent_1 {
 text-indent: 5px;
 }
-#odiudwyvdd .gt_indent_2 {
+#rkklnmzlnk .gt_indent_2 {
 text-indent: 10px;
 }
-#odiudwyvdd .gt_indent_3 {
+#rkklnmzlnk .gt_indent_3 {
 text-indent: 15px;
 }
-#odiudwyvdd .gt_indent_4 {
+#rkklnmzlnk .gt_indent_4 {
 text-indent: 20px;
 }
-#odiudwyvdd .gt_indent_5 {
+#rkklnmzlnk .gt_indent_5 {
 text-indent: 25px;
 }
 </style>
@@ -973,84 +971,84 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">46 (21.8%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">46 (22%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">36 (17.1%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">36 (17%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">70 (33.2%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">70 (33%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    3</td>
-<td headers="stat_1" class="gt_row gt_center">28 (16.5%)</td>
-<td headers="stat_2" class="gt_row gt_center">59 (28.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">28 (16%)</td>
+<td headers="stat_2" class="gt_row gt_center">59 (28%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    4</td>
-<td headers="stat_1" class="gt_row gt_center">25 (14.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">25 (15%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    6</td>
-<td headers="stat_1" class="gt_row gt_center">22 (12.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">22 (13%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    7</td>
-<td headers="stat_1" class="gt_row gt_center">95 (55.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">95 (56%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">Seq_region</td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    V3-V4</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">106 (50.2%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">106 (50%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    V4</td>
-<td headers="stat_1" class="gt_row gt_center">170 (100.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">59 (28.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">170 (100%)</td>
+<td headers="stat_2" class="gt_row gt_center">59 (28%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    V5-V6</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">46 (21.8%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">46 (22%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">Seq_date</td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2015</td>
-<td headers="stat_1" class="gt_row gt_center">95 (55.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">95 (56%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2017</td>
-<td headers="stat_1" class="gt_row gt_center">25 (14.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">25 (15%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2018</td>
-<td headers="stat_1" class="gt_row gt_center">14 (8.2%)</td>
-<td headers="stat_2" class="gt_row gt_center">82 (38.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">14 (8%)</td>
+<td headers="stat_2" class="gt_row gt_center">82 (39%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2020</td>
-<td headers="stat_1" class="gt_row gt_center">3 (1.8%)</td>
-<td headers="stat_2" class="gt_row gt_center">36 (17.1%)</td>
+<td headers="stat_1" class="gt_row gt_center">3 (2%)</td>
+<td headers="stat_2" class="gt_row gt_center">36 (17%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2021</td>
-<td headers="stat_1" class="gt_row gt_center">9 (5.3%)</td>
-<td headers="stat_2" class="gt_row gt_center">23 (10.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">9 (5%)</td>
+<td headers="stat_2" class="gt_row gt_center">23 (11%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2022</td>
-<td headers="stat_1" class="gt_row gt_center">23 (13.5%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">23 (14%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2023</td>
-<td headers="stat_1" class="gt_row gt_center">1 (0.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">70 (33.2%)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (1%)</td>
+<td headers="stat_2" class="gt_row gt_center">70 (33%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">Age</td>
-<td headers="stat_1" class="gt_row gt_center">42.0 (32.0, 49.5)</td>
-<td headers="stat_2" class="gt_row gt_center">28.0 (26.0, 37.0)</td>
+<td headers="stat_1" class="gt_row gt_center">42 (32, 50)</td>
+<td headers="stat_2" class="gt_row gt_center">28 (26, 37)</td>
 <td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">95</td>
@@ -1061,12 +1059,12 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">0.15</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    female</td>
-<td headers="stat_1" class="gt_row gt_center">35 (47.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">44 (37.3%)</td>
+<td headers="stat_1" class="gt_row gt_center">35 (48%)</td>
+<td headers="stat_2" class="gt_row gt_center">44 (37%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    male</td>
-<td headers="stat_1" class="gt_row gt_center">38 (52.1%)</td>
-<td headers="stat_2" class="gt_row gt_center">74 (62.7%)</td>
+<td headers="stat_1" class="gt_row gt_center">38 (52%)</td>
+<td headers="stat_2" class="gt_row gt_center">74 (63%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">97</td>
@@ -1077,84 +1075,84 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Australia</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">6 (2.8%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">6 (3%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Austria</td>
-<td headers="stat_1" class="gt_row gt_center">25 (14.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">3 (1.4%)</td>
+<td headers="stat_1" class="gt_row gt_center">25 (15%)</td>
+<td headers="stat_2" class="gt_row gt_center">3 (1%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Belgium</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">46 (21.8%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">46 (22%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Germany</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">45 (21.3%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">45 (21%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Greece</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">1 (0.5%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">1 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Hungary</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">2 (0.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">2 (1%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Ireland</td>
-<td headers="stat_1" class="gt_row gt_center">1 (0.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (1%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Israel</td>
-<td headers="stat_1" class="gt_row gt_center">22 (12.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">1 (0.5%)</td>
+<td headers="stat_1" class="gt_row gt_center">22 (13%)</td>
+<td headers="stat_2" class="gt_row gt_center">1 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Italy</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">37 (17.5%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">37 (18%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Norway</td>
-<td headers="stat_1" class="gt_row gt_center">1 (0.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (1%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Poland</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">70 (33.2%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">70 (33%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Spain</td>
-<td headers="stat_1" class="gt_row gt_center">95 (55.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">95 (56%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    UK</td>
-<td headers="stat_1" class="gt_row gt_center">12 (7.1%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">12 (7%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    USA</td>
-<td headers="stat_1" class="gt_row gt_center">14 (8.2%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">14 (8%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">Race</td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">0.4</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    African American</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">1 (1.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">1 (1%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Asian or Pacific Islander</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">1 (1.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">1 (1%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Caucasian</td>
-<td headers="stat_1" class="gt_row gt_center">27 (100.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">89 (86.4%)</td>
+<td headers="stat_1" class="gt_row gt_center">27 (100%)</td>
+<td headers="stat_2" class="gt_row gt_center">89 (86%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Hispanic</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">1 (1.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">1 (1%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Other</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">11 (10.7%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">11 (11%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">143</td>
@@ -1165,28 +1163,28 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Daily</td>
-<td headers="stat_1" class="gt_row gt_center">2 (7.1%)</td>
-<td headers="stat_2" class="gt_row gt_center">5 (2.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">2 (7%)</td>
+<td headers="stat_2" class="gt_row gt_center">5 (3%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Never</td>
-<td headers="stat_1" class="gt_row gt_center">24 (85.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">47 (26.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">24 (86%)</td>
+<td headers="stat_2" class="gt_row gt_center">47 (27%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    No</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">116 (66.3%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">116 (66%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Occasionally (1-2 times/week)</td>
-<td headers="stat_1" class="gt_row gt_center">1 (3.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">2 (1.1%)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (4%)</td>
+<td headers="stat_2" class="gt_row gt_center">2 (1%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Rarely (a few times/month)</td>
-<td headers="stat_1" class="gt_row gt_center">1 (3.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">4 (2.3%)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (4%)</td>
+<td headers="stat_2" class="gt_row gt_center">4 (2%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Regularly (3-5 times/week)</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">1 (0.6%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">1 (1%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">142</td>
@@ -1197,24 +1195,24 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">0.003</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Daily</td>
-<td headers="stat_1" class="gt_row gt_center">3 (10.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">3 (11%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Never</td>
-<td headers="stat_1" class="gt_row gt_center">4 (14.3%)</td>
-<td headers="stat_2" class="gt_row gt_center">8 (13.6%)</td>
+<td headers="stat_1" class="gt_row gt_center">4 (14%)</td>
+<td headers="stat_2" class="gt_row gt_center">8 (14%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Occasionally (1-2 times/week)</td>
-<td headers="stat_1" class="gt_row gt_center">4 (14.3%)</td>
-<td headers="stat_2" class="gt_row gt_center">20 (33.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">4 (14%)</td>
+<td headers="stat_2" class="gt_row gt_center">20 (34%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Rarely (a few times/month)</td>
-<td headers="stat_1" class="gt_row gt_center">9 (32.1%)</td>
-<td headers="stat_2" class="gt_row gt_center">27 (45.8%)</td>
+<td headers="stat_1" class="gt_row gt_center">9 (32%)</td>
+<td headers="stat_2" class="gt_row gt_center">27 (46%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Regularly (3-5 times/week)</td>
-<td headers="stat_1" class="gt_row gt_center">8 (28.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">4 (6.8%)</td>
+<td headers="stat_1" class="gt_row gt_center">8 (29%)</td>
+<td headers="stat_2" class="gt_row gt_center">4 (7%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">142</td>
@@ -1225,24 +1223,24 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    3 months</td>
-<td headers="stat_1" class="gt_row gt_center">22 (44.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">22 (44%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    6 months</td>
-<td headers="stat_1" class="gt_row gt_center">3 (6.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">3 (6%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Month</td>
-<td headers="stat_1" class="gt_row gt_center">2 (4.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">46 (30.3%)</td>
+<td headers="stat_1" class="gt_row gt_center">2 (4%)</td>
+<td headers="stat_2" class="gt_row gt_center">46 (30%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Not use</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">106 (69.7%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">106 (70%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Year</td>
-<td headers="stat_1" class="gt_row gt_center">23 (46.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">23 (46%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">120</td>
@@ -1253,28 +1251,28 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Daily</td>
-<td headers="stat_1" class="gt_row gt_center">2 (7.1%)</td>
-<td headers="stat_2" class="gt_row gt_center">5 (2.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">2 (7%)</td>
+<td headers="stat_2" class="gt_row gt_center">5 (3%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Never</td>
-<td headers="stat_1" class="gt_row gt_center">24 (85.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">47 (26.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">24 (86%)</td>
+<td headers="stat_2" class="gt_row gt_center">47 (27%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    No</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">116 (66.3%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">116 (66%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Occasionally (1-2 times/week)</td>
-<td headers="stat_1" class="gt_row gt_center">1 (3.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">2 (1.1%)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (4%)</td>
+<td headers="stat_2" class="gt_row gt_center">2 (1%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Rarely (a few times/month)</td>
-<td headers="stat_1" class="gt_row gt_center">1 (3.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">4 (2.3%)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (4%)</td>
+<td headers="stat_2" class="gt_row gt_center">4 (2%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Regularly (3-5 times/week)</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">1 (0.6%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">1 (1%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">142</td>
@@ -1285,20 +1283,20 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">0.066</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    3 months</td>
-<td headers="stat_1" class="gt_row gt_center">3 (10.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">15 (25.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">3 (11%)</td>
+<td headers="stat_2" class="gt_row gt_center">15 (26%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    6 months</td>
-<td headers="stat_1" class="gt_row gt_center">1 (3.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">9 (15.5%)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (4%)</td>
+<td headers="stat_2" class="gt_row gt_center">9 (16%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Month</td>
-<td headers="stat_1" class="gt_row gt_center">4 (14.3%)</td>
-<td headers="stat_2" class="gt_row gt_center">9 (15.5%)</td>
+<td headers="stat_1" class="gt_row gt_center">4 (14%)</td>
+<td headers="stat_2" class="gt_row gt_center">9 (16%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Year</td>
-<td headers="stat_1" class="gt_row gt_center">20 (71.4%)</td>
-<td headers="stat_2" class="gt_row gt_center">25 (43.1%)</td>
+<td headers="stat_1" class="gt_row gt_center">20 (71%)</td>
+<td headers="stat_2" class="gt_row gt_center">25 (43%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">142</td>
@@ -1309,16 +1307,16 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">&lt;0.001</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Bachelor&#39;s level</td>
-<td headers="stat_1" class="gt_row gt_center">5 (17.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">26 (46.4%)</td>
+<td headers="stat_1" class="gt_row gt_center">5 (18%)</td>
+<td headers="stat_2" class="gt_row gt_center">26 (46%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Master&#39;s level</td>
-<td headers="stat_1" class="gt_row gt_center">18 (64.3%)</td>
-<td headers="stat_2" class="gt_row gt_center">10 (17.9%)</td>
+<td headers="stat_1" class="gt_row gt_center">18 (64%)</td>
+<td headers="stat_2" class="gt_row gt_center">10 (18%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    School Level</td>
-<td headers="stat_1" class="gt_row gt_center">5 (17.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">20 (35.7%)</td>
+<td headers="stat_1" class="gt_row gt_center">5 (18%)</td>
+<td headers="stat_2" class="gt_row gt_center">20 (36%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">142</td>
@@ -1329,140 +1327,68 @@ text-indent: 25px;
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">0.5</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Daily cosmetics</td>
-<td headers="stat_1" class="gt_row gt_center">6 (22.2%)</td>
-<td headers="stat_2" class="gt_row gt_center">13 (22.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">6 (22%)</td>
+<td headers="stat_2" class="gt_row gt_center">13 (22%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Never cosmetics</td>
-<td headers="stat_1" class="gt_row gt_center">15 (55.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">29 (49.2%)</td>
+<td headers="stat_1" class="gt_row gt_center">15 (56%)</td>
+<td headers="stat_2" class="gt_row gt_center">29 (49%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Occasionally cosmetics (1-2 times/week)</td>
-<td headers="stat_1" class="gt_row gt_center">2 (7.4%)</td>
-<td headers="stat_2" class="gt_row gt_center">5 (8.5%)</td>
+<td headers="stat_1" class="gt_row gt_center">2 (7%)</td>
+<td headers="stat_2" class="gt_row gt_center">5 (8%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Rarely cosmetics (a few times/month)</td>
-<td headers="stat_1" class="gt_row gt_center">4 (14.8%)</td>
-<td headers="stat_2" class="gt_row gt_center">6 (10.2%)</td>
+<td headers="stat_1" class="gt_row gt_center">4 (15%)</td>
+<td headers="stat_2" class="gt_row gt_center">6 (10%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Regularly cosmetics (3-5 times/week)</td>
-<td headers="stat_1" class="gt_row gt_center">0 (0.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">6 (10.2%)</td>
+<td headers="stat_1" class="gt_row gt_center">0 (0%)</td>
+<td headers="stat_2" class="gt_row gt_center">6 (10%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">143</td>
 <td headers="stat_2" class="gt_row gt_center">152</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">Pets_type</td>
-<td headers="stat_1" class="gt_row gt_center"></td>
-<td headers="stat_2" class="gt_row gt_center"></td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Cat</td>
-<td headers="stat_1" class="gt_row gt_center">27 (100.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">57 (100.0%)</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">143</td>
-<td headers="stat_2" class="gt_row gt_center">154</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">Sleep_duration</td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">0.2</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    &gt; 8 hours</td>
-<td headers="stat_1" class="gt_row gt_center">4 (14.3%)</td>
-<td headers="stat_2" class="gt_row gt_center">5 (8.5%)</td>
+<td headers="stat_1" class="gt_row gt_center">4 (14%)</td>
+<td headers="stat_2" class="gt_row gt_center">5 (8%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    4-6 hours</td>
-<td headers="stat_1" class="gt_row gt_center">4 (14.3%)</td>
-<td headers="stat_2" class="gt_row gt_center">5 (8.5%)</td>
+<td headers="stat_1" class="gt_row gt_center">4 (14%)</td>
+<td headers="stat_2" class="gt_row gt_center">5 (8%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    6-7 hours</td>
-<td headers="stat_1" class="gt_row gt_center">12 (42.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">19 (32.2%)</td>
+<td headers="stat_1" class="gt_row gt_center">12 (43%)</td>
+<td headers="stat_2" class="gt_row gt_center">19 (32%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    7-8 hours</td>
-<td headers="stat_1" class="gt_row gt_center">8 (28.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">30 (50.8%)</td>
+<td headers="stat_1" class="gt_row gt_center">8 (29%)</td>
+<td headers="stat_2" class="gt_row gt_center">30 (51%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">142</td>
 <td headers="stat_2" class="gt_row gt_center">152</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">BMI</td>
-<td headers="stat_1" class="gt_row gt_center">23.5 (22.7, 26.1)</td>
-<td headers="stat_2" class="gt_row gt_center">NA (NA, NA)</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">124</td>
-<td headers="stat_2" class="gt_row gt_center">211</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">Diet_type</td>
-<td headers="stat_1" class="gt_row gt_center"></td>
-<td headers="stat_2" class="gt_row gt_center"></td>
-<td headers="p.value" class="gt_row gt_center">&gt;0.9</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    10.0</td>
-<td headers="stat_1" class="gt_row gt_center">13 (72.2%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (NA%)</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    5.0</td>
-<td headers="stat_1" class="gt_row gt_center">5 (27.8%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (NA%)</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">152</td>
-<td headers="stat_2" class="gt_row gt_center">211</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">Diet_duration</td>
-<td headers="stat_1" class="gt_row gt_center"></td>
-<td headers="stat_2" class="gt_row gt_center"></td>
-<td headers="p.value" class="gt_row gt_center">&gt;0.9</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    3.0</td>
-<td headers="stat_1" class="gt_row gt_center">8 (61.5%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (NA%)</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    6.0</td>
-<td headers="stat_1" class="gt_row gt_center">5 (38.5%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (NA%)</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">157</td>
-<td headers="stat_2" class="gt_row gt_center">211</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">Additive_usage</td>
-<td headers="stat_1" class="gt_row gt_center"></td>
-<td headers="stat_2" class="gt_row gt_center"></td>
-<td headers="p.value" class="gt_row gt_center">&gt;0.9</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    22.0</td>
-<td headers="stat_1" class="gt_row gt_center">1 (9.1%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (NA%)</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    23.0</td>
-<td headers="stat_1" class="gt_row gt_center">1 (9.1%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (NA%)</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    4.0</td>
-<td headers="stat_1" class="gt_row gt_center">9 (81.8%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (NA%)</td>
-<td headers="p.value" class="gt_row gt_center"></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">159</td>
-<td headers="stat_2" class="gt_row gt_center">211</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">BMI_category</td>
 <td headers="stat_1" class="gt_row gt_center"></td>
 <td headers="stat_2" class="gt_row gt_center"></td>
 <td headers="p.value" class="gt_row gt_center">0.012</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    normal/overweight</td>
-<td headers="stat_1" class="gt_row gt_center">135 (95.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">152 (100.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">135 (96%)</td>
+<td headers="stat_2" class="gt_row gt_center">152 (100%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    obese</td>
-<td headers="stat_1" class="gt_row gt_center">5 (3.5%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">5 (4%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    underweight</td>
-<td headers="stat_1" class="gt_row gt_center">1 (0.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0.0%)</td>
+<td headers="stat_1" class="gt_row gt_center">1 (1%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td>
 <td headers="p.value" class="gt_row gt_center"></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
 <td headers="stat_1" class="gt_row gt_center">29</td>
@@ -1501,7 +1427,7 @@ rm (bacteria_healthy, bacteria_ibs)</code></pre>
 <pre class="r"><code>final_data_wide &lt;- combined_info %&gt;% 
   bind_cols(combined_bacteria) %&gt;% 
   rename(patient_ID = patient_ID...2) %&gt;% 
-  mutate(patient_ID...24 = NULL)</code></pre>
+  mutate(patient_ID...22 = NULL)</code></pre>
 </div>
 <div id="оценка-доли-na-и-нулевых-значений" class="section level2">
 <h2>Оценка доли NA и нулевых значений</h2>
@@ -1520,7 +1446,7 @@ rm (bacteria_healthy, bacteria_ibs)</code></pre>
   arrange(desc (NA_percentage)) %&gt;% 
   rownames_to_column() %&gt;% 
   as_tibble() %&gt;% flextable::flextable()</code></pre>
-<div class="tabwid"><style>.cl-f014598c{}.cl-f0008d62{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-f007e86e{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f007e882{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f00816c2{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f00816cc{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f00816d6{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f00816d7{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f00816e0{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f00816ea{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-f014598c"><thead><tr style="overflow-wrap:break-word;"><th class="cl-f00816c2"><p class="cl-f007e86e"><span class="cl-f0008d62">rowname</span></p></th><th class="cl-f00816c2"><p class="cl-f007e86e"><span class="cl-f0008d62">NA_percentage</span></p></th><th class="cl-f00816cc"><p class="cl-f007e882"><span class="cl-f0008d62">Number of people with known data</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Additive_usage</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">97.1 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">11</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Diet_duration</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">96.6 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">13</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Diet_type</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">95.3 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">18</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">BMI</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">87.9 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">46</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Education_level</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">78 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">84</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Pets_type</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">78 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">84</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Travel_period</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">77.4 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">86</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Hygiene</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">77.4 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">86</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Alcohol</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">77.2 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">87</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Sleep_duration</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">77.2 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">87</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Race</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">65.9 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">130</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Age</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">64.8 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">134</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Sex</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">49.9 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">191</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Antibiotics_usage</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">47 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">202</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Smoking</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">46.7 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">203</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">Physical_activity</span></p></td><td class="cl-f00816d6"><p class="cl-f007e86e"><span class="cl-f0008d62">46.7 %</span></p></td><td class="cl-f00816d7"><p class="cl-f007e882"><span class="cl-f0008d62">203</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f00816e0"><p class="cl-f007e86e"><span class="cl-f0008d62">BMI_category</span></p></td><td class="cl-f00816e0"><p class="cl-f007e86e"><span class="cl-f0008d62">23.1 %</span></p></td><td class="cl-f00816ea"><p class="cl-f007e882"><span class="cl-f0008d62">293</span></p></td></tr></tbody></table></div>
+<div class="tabwid"><style>.cl-f240671a{}.cl-f22c2e08{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-f2340ee8{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f2340efc{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f2343cce{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f2343cd8{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f2343ce2{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f2343cec{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f2343ced{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f2343d00{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-f240671a"><thead><tr style="overflow-wrap:break-word;"><th class="cl-f2343cce"><p class="cl-f2340ee8"><span class="cl-f22c2e08">rowname</span></p></th><th class="cl-f2343cce"><p class="cl-f2340ee8"><span class="cl-f22c2e08">NA_percentage</span></p></th><th class="cl-f2343cd8"><p class="cl-f2340efc"><span class="cl-f22c2e08">Number of people with known data</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Additive_usage</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">97.1 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">11</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Diet_duration</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">96.6 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">13</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Diet_type</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">95.3 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">18</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Education_level</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">78 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">84</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Travel_period</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">77.4 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">86</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Hygiene</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">77.4 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">86</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Alcohol</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">77.2 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">87</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Sleep_duration</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">77.2 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">87</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Race</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">65.9 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">130</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Age</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">64.8 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">134</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Sex</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">49.9 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">191</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Antibiotics_usage</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">47 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">202</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Smoking</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">46.7 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">203</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">Physical_activity</span></p></td><td class="cl-f2343ce2"><p class="cl-f2340ee8"><span class="cl-f22c2e08">46.7 %</span></p></td><td class="cl-f2343cec"><p class="cl-f2340efc"><span class="cl-f22c2e08">203</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f2343ced"><p class="cl-f2340ee8"><span class="cl-f22c2e08">BMI_category</span></p></td><td class="cl-f2343ced"><p class="cl-f2340ee8"><span class="cl-f22c2e08">23.1 %</span></p></td><td class="cl-f2343d00"><p class="cl-f2340efc"><span class="cl-f22c2e08">293</span></p></td></tr></tbody></table></div>
 <ul>
 <li>Рассчитаем процент не NA и не 0 данных по колонкам широкого
 формата</li>
