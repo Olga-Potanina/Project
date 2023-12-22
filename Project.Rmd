@@ -375,3 +375,29 @@ ggplot(df_full, aes(x = x, y = y, color = Health_state)) +
 adonis2(d ~ Health_state_n, data = df_full)
 
 ```
+
+# Другой вариант множественного сравнения
+
+```{r}
+library(gtsummary)
+
+Taxons_comparison <- final_data_wide %>% 
+  select(Health_state,
+         ends_with(c("_P"))) %>% 
+  tbl_summary(by = Health_state,
+              digits = list(all_continuous() ~ c(6, 6))) %>%
+  add_p() %>% #по умолчанию был выбран тест Манна-Уитни
+  as_tibble() %>% 
+  rename(Taxon = "**Characteristic**",
+         "Disease (Median (IQR))" ="**Disease**, N = 170",
+         "Health (Median (IQR))" = "**Health**, N = 211",
+         p_value = "**p-value**") %>%
+  mutate (p_value = sub ("<", "",  p_value)) %>% 
+  arrange(p_value) %>% 
+  add_column(p_value_bonferroni = p.adjust(.$p_value, method = "bonferroni")) %>% 
+  add_column(p_value_holm = p.adjust(.$p_value, method = "holm")) %>% 
+  add_column(p_value_BH = p.adjust(.$p_value, method = "BH")) %>% 
+  mutate(p_value_BH = round (p_value_BH, 3)) %>% 
+  filter (p_value <= 0.05)
+```
+
