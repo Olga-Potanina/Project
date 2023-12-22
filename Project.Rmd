@@ -269,21 +269,16 @@ result_dataset <- data.frame(
 
 alpha = 0.05
 
-# Сохранение названий переменных, где все наблюдения 0 или NA
-removed_variables <- colnames(combined_bacteria)[apply(combined_bacteria, 2, function(x) all(is.na(x) | x == 0))]
-cat("Removed Variables:", toString(removed_variables), "\n")
-
-# Удаление переменных из combined_bacteria
-combined_bacteria_clean <- combined_bacteria[, !colnames(combined_bacteria) %in% removed_variables]
-
-colnames(combined_bacteria_clean) <- gsub(" ", "_", colnames(combined_bacteria_clean))
-colnames(combined_bacteria_clean) <- gsub("-", "_", colnames(combined_bacteria_clean))
-
 # Объединяем датасеты по patient_id 
-combined_data <- left_join(combined_bacteria_clean, combined_info, by = "patient_ID") 
+combined_data <- final_data_wide %>%
+  select(Health_state,
+    ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")))
+
+combined_bacteria_clean <- combined_data
 
 # Получаем список переменных из датасета combined_bacteria, исключая "patient_ID"
-variable_names <- setdiff(names(combined_bacteria_clean), "patient_ID")
+values_to_exclude <- c("patient_ID", "Seq_date", "Age")
+variable_names <- setdiff(names(combined_bacteria_clean), values_to_exclude)
 
 # Проходим по каждой переменной
 for (variable in variable_names) {
