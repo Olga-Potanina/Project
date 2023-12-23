@@ -11,9 +11,9 @@ library(readxl)
 library(openxlsx)
 library (tidyverse)
 library(vegan)
-library(dplyr) 
 library(tidyr) 
 library(broom) 
+library (flextable)
 ```
 
 ## Чтение, слияние, редактирование исходных датасетов
@@ -39,6 +39,7 @@ c ("Уникальные переменные в info_healthy:", info_healthy %>
 sep = "\n") 
 
 ```
+#### combined_info
 
 -   Объединение `info_healthy` и `info_ibs` в единый датасет `combined_info` c редактированием содержимого
 
@@ -54,14 +55,43 @@ combined_info <- info_healthy %>%
   unite ("Age_range", Age_min, Age_max, sep = "-", na.rm = TRUE) %>%
   mutate(
     research_ID = sub ("research_", "", research_ID),
+    research_ID = case_when(
+      research_ID == 0 ~ 1,
+      research_ID == 1 ~ 2,
+      research_ID == 2 ~ 3,
+      research_ID == 3 ~ 4,
+      research_ID == 4 ~ 5, 
+      research_ID == 6 ~ 6, 
+      research_ID == 7 ~ 7), 
     patient_ID = row_number(),
     Sex = ifelse (Sex == "mixed", NA, Sex),
     Smoking = sub ("never", "Never",  Smoking),
+    Smoking = case_when(
+      Smoking == "No" ~ "No",
+      Smoking == "Never" ~ "No",
+      Smoking == "Rarely (a few times/month)" ~ "Yes", #5 чел.
+      Smoking == "Occasionally (1-2 times/week)" ~ "Yes",  #3 чел.
+      Smoking == "Regularly (3-5 times/week)" ~ "Yes",  #1 чел.
+      Smoking == "Daily" ~ "Yes"), #7 чел.
     Alcohol = sub ("rarely", "Rarely", Alcohol),
+    Alcohol = ifelse(Alcohol == "Regularly (3-5 times/week)"|
+                       Alcohol == "Daily", #3 чел.
+                     "Regularly (3-7 times/week)", Alcohol),
+    Antibiotics_usage = case_when(
+      Antibiotics_usage == "Month" | Antibiotics_usage == ~ "3 months" |
+        Antibiotics_usage == "6 months" ~ "1-6 months",
+        #2 чел. больных Month, 0 чел. здоровых 3 months, 0 чел. здоровых для 6 months
+      Antibiotics_usage == "Year" | Antibiotics_usage == "Not use"  ~ 
+        "12 months/Not use"), # 0 чел. из здоровых для 6-12 months, 0 чел. больных для Not use
     Hygiene = case_when(
       Hygiene == "Occasionally (1-2 times/week) cosmetics" ~ "Occasionally cosmetics (1-2 times/week)",
       Hygiene == "Rarely (a few times/month) cosmetics" ~ "Rarely cosmetics (a few times/month)",
       TRUE ~ Hygiene),
+    Hygiene = case_when(
+      Hygiene == "Daily cosmetics"|Hygiene == "Regularly cosmetics (3-5 times/week)" ~ "Regularly (3-7 times/week)", #0 чел. больных  для 3-5 times/week
+      Hygiene == "Occasionally cosmetics (1-2 times/week)" | Hygiene == "Rarely cosmetics (a few times/month)" ~ "Occasionally (a few-8 times/month)",
+      #только 2 чел. больных для 1-2 times/week
+      Hygiene == "Never cosmetics" ~ "Never"),
     Physical_activity = sub ("regularly", "Regularly",  Smoking),
     BMI = ifelse (is.na(Weight_kg), BMI, Weight_kg/ (Height_cm/100 * Height_cm/100)),
     BMI_range = ifelse(BMI_range == "", NA, BMI_range),
@@ -75,7 +105,10 @@ combined_info <- info_healthy %>%
       BMI >= 18.5 & BMI < 30 ~ "normal/overweight",
       BMI >= 30 ~ "obese")
     ) %>% 
+  rename ("Cosmetics" = Hygiene ) %>% 
+  
   mutate_if (is.character, as.factor) %>% 
+  
   select(-c(
     Instrument, # unique (combined_info$Instrument) = "Illumina MiSeq" 
     Isolation_source, # unique (combined_info$Isolation_source) = "faeces" 
@@ -95,7 +128,23 @@ summary (combined_info)
 
 ```
 
-```{r}
+- Таблица с количеством субъектов (n) в зависимости от исследования, даты, наличия/отсутствия СРК
+
+```{r, message=FALSE}
+
+combined_info %>% 
+  select (research_ID, Country, Seq_date, Health_state) %>% 
+  group_by(research_ID, Country, Seq_date, Health_state) %>% 
+  summarise(n = n()) %>% 
+  flextable() %>% theme_box() %>% 
+  merge_v(c ("research_ID", "Country", "Seq_date", "Health_state")) %>% 
+  align(align = "center", part = "all")
+
+```
+
+#### tbl_summary of combined_info
+
+```{r, message=FALSE}
 
 library(gtsummary)
 
@@ -153,7 +202,7 @@ final_data_wide %>%
     ) %>% 
   arrange(desc (NA_percentage)) %>% 
   rownames_to_column() %>% 
-  as_tibble() %>% flextable::flextable()
+  as_tibble() %>% flextable()
 
 ```
 
