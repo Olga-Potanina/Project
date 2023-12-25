@@ -39,6 +39,7 @@ c ("Уникальные переменные в info_healthy:", info_healthy %>
 sep = "\n") 
 
 ```
+
 #### combined_info
 
 -   Объединение `info_healthy` и `info_ibs` в единый датасет `combined_info` c редактированием содержимого
@@ -128,7 +129,7 @@ summary (combined_info)
 
 ```
 
-- Таблица с количеством субъектов (n) в зависимости от исследования, даты, наличия/отсутствия СРК
+-   Таблица с количеством субъектов (n) в зависимости от исследования, даты, наличия/отсутствия СРК
 
 ```{r, message=FALSE}
 
@@ -425,28 +426,77 @@ adonis2(d ~ Health_state_n, data = df_full)
 
 ```
 
-# Другой вариант множественного сравнения
+## Тест Манна-Уитни для сравнения каждого таксона между больными и здоровыми
+
+-   после округления всех значений **до целого**
 
 ```{r}
-library(gtsummary)
 
-Taxons_comparison <- final_data_wide %>% 
-  select(Health_state,
-         ends_with(c("_P"))) %>% 
-  tbl_summary(by = Health_state,
-              digits = list(all_continuous() ~ c(6, 6))) %>%
-  add_p() %>% #по умолчанию был выбран тест Манна-Уитни
-  as_tibble() %>% 
-  rename(Taxon = "**Characteristic**",
-         "Disease (Median (IQR))" ="**Disease**, N = 170",
-         "Health (Median (IQR))" = "**Health**, N = 211",
-         p_value = "**p-value**") %>%
-  mutate (p_value = sub ("<", "",  p_value)) %>% 
+Wilcox_comparison_round_0 <- final_data_wide %>% 
+  select(Health_state, Archaea, Bacteria,
+         ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))) %>% 
+  mutate(across (where (is.numeric), function (x) round (x,0))) %>% 
+  summarise_if (is.numeric, function (x) (wilcox.test(x ~ .$Health_state)$p.value)) %>% 
+  pivot_longer(everything()) %>% 
+  rename (Taxon = name, p_value = value) %>% 
+  filter (p_value <= 0.05 ) %>% 
   arrange(p_value) %>% 
-  add_column(p_value_bonferroni = p.adjust(.$p_value, method = "bonferroni")) %>% 
-  add_column(p_value_holm = p.adjust(.$p_value, method = "holm")) %>% 
-  add_column(p_value_BH = p.adjust(.$p_value, method = "BH")) %>% 
-  mutate(p_value_BH = round (p_value_BH, 3)) %>% 
-  filter (p_value <= 0.05)
+  add_column(p_value_holm = p.adjust(.$p_value, "holm")) %>% 
+  add_column(p_value_BH = p.adjust(.$p_value, "BH"))
+
+ rbind (
+   "Количество значимо различающихся таксонов по p_value" = nrow (Wilcox_comparison_round_0),
+ "Количество значимо различающихся таксонов по p_value_holm" = nrow (Wilcox_comparison_round_0 %>% filter (p_value_holm <= 0.05 )),
+ "Количество значимо различающихся таксонов по p_value_BH" = nrow (Wilcox_comparison_round_0 %>% filter (p_value_BH <= 0.05 ))
+ )
+ 
+```
+
+-   после округления всех значений **до десятых**
+
+```{r}
+
+Wilcox_comparison_round_1 <- final_data_wide %>% 
+  select(Health_state, Archaea, Bacteria,
+         ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))) %>% 
+  mutate(across (where (is.numeric), function (x) round (x,1))) %>% 
+  summarise_if (is.numeric, function (x) (wilcox.test(x ~ .$Health_state)$p.value)) %>% 
+  pivot_longer(everything()) %>% 
+  rename (Taxon = name, p_value = value) %>% 
+  filter (p_value <= 0.05 ) %>% 
+  arrange(p_value) %>% 
+  add_column(p_value_holm = p.adjust(.$p_value, "holm")) %>% 
+  add_column(p_value_BH = p.adjust(.$p_value, "BH"))
+
+ rbind (
+   "Количество значимо различающихся таксонов по p_value" = nrow (Wilcox_comparison_round_1),
+ "Количество значимо различающихся таксонов по p_value_holm" = nrow (Wilcox_comparison_round_1 %>% filter (p_value_holm <= 0.05 )),
+ "Количество значимо различающихся таксонов по p_value_BH" = nrow (Wilcox_comparison_round_1 %>% filter (p_value_BH <= 0.05 ))
+ )
+ 
+```
+
+-   после округления всех значений **до сотых**
+
+```{r}
+
+Wilcox_comparison_round_2 <- final_data_wide %>% 
+  select(Health_state, Archaea, Bacteria,
+         ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))) %>% 
+  mutate(across (where (is.numeric), function (x) round (x,2))) %>% 
+  summarise_if (is.numeric, function (x) (wilcox.test(x ~ .$Health_state)$p.value)) %>% 
+  pivot_longer(everything()) %>% 
+  rename (Taxon = name, p_value = value) %>% 
+  filter (p_value <= 0.05 ) %>% 
+  arrange(p_value) %>% 
+  add_column(p_value_holm = p.adjust(.$p_value, "holm")) %>% 
+  add_column(p_value_BH = p.adjust(.$p_value, "BH"))
+
+ rbind (
+   "Количество значимо различающихся таксонов по p_value" = nrow (Wilcox_comparison_round_2),
+ "Количество значимо различающихся таксонов по p_value_holm" = nrow (Wilcox_comparison_round_2 %>% filter (p_value_holm <= 0.05 )),
+ "Количество значимо различающихся таксонов по p_value_BH" = nrow (Wilcox_comparison_round_2 %>% filter (p_value_BH <= 0.05 ))
+ )
+ 
 ```
 
