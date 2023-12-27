@@ -11,7 +11,6 @@ library(readxl)
 library(openxlsx)
 library (tidyverse)
 library(vegan)
-library(tidyr) 
 library(broom) 
 library (flextable)
 ```
@@ -125,6 +124,7 @@ combined_info <- info_healthy %>%
     Pets_type # только cat и NA
   ))
 
+rm (info_healthy, info_ibs)
 summary (combined_info)
 
 ```
@@ -175,30 +175,28 @@ rm (bacteria_healthy, bacteria_ibs)
 
 ```
 
--   Объединение `combined_bacteria` и `combined_info` в `final_data_wide`
+-   Объединение `combined_bacteria` и `combined_info` в `data_wide`
 
-```{r final_data_wide, message=FALSE}
+```{r data_wide, message=FALSE}
 
-final_data_wide <- combined_info %>% 
-  bind_cols(combined_bacteria) %>% 
-  rename(patient_ID = patient_ID...2) %>% 
-  mutate(patient_ID...22 = NULL)
+data_wide <- combined_info %>% 
+  left_join (combined_bacteria)
 
 ```
 
 ## Оценка доли NA и нулевых значений
 
--   Оценка доли NA в переменных `final_data_wide`
+-   Оценка доли NA в переменных `data_wide`
 
 ```{r}
 
-final_data_wide %>% 
-  select (where (function(x) sum (is.na(x))/ nrow(final_data_wide) * 100 > 0)) %>% 
-  sapply (function(x) sum (is.na(x))/ nrow(final_data_wide) * 100) %>% round(1) %>% 
+data_wide %>% 
+  select (where (function(x) sum (is.na(x))/ nrow(data_wide) * 100 > 0)) %>% 
+  sapply (function(x) sum (is.na(x))/ nrow(data_wide) * 100) %>% round(1) %>% 
   as.data.frame() %>% 
   rename(NA_percentage = ".") %>% 
   mutate (
-    "Number of people with known data" = round (nrow(final_data_wide) - NA_percentage/100 * nrow(final_data_wide)),
+    "Number of people with known data" = round (nrow(data_wide) - NA_percentage/100 * nrow(data_wide)),
     NA_percentage = paste (NA_percentage, "%", sep = " ")
     ) %>% 
   arrange(desc (NA_percentage)) %>% 
@@ -220,7 +218,7 @@ calculate_percentage <- function(col) {
 } 
  
 # Применяем функцию к каждой колонке в датасете 
-percentage_non_zero_non_na <- sapply(final_data_wide[, -1], calculate_percentage) 
+percentage_non_zero_non_na <- sapply(data_wide[, -1], calculate_percentage) 
  
 # Создаем датафрейм с результатами 
 result_df_sort <- data.frame( 
@@ -236,8 +234,8 @@ filtered_columns <- result_df_sort[result_df_sort$percentage < threshold_percent
 write.xlsx(filtered_columns, 
            file = "data/originals/percentage_by_vars.xlsx")
 
-# Перезапись final_data_wide с выбором колонок с процентом NA/0 менее threshold_percent 
-final_data_wide <- final_data_wide %>% 
+# Перезапись data_wide с выбором колонок с процентом NA/0 менее threshold_percent 
+data_wide <- data_wide %>% 
   select (row.names(filtered_columns), research_ID)
 
 rm (calculate_percentage, result_df_sort)
@@ -251,11 +249,11 @@ rm (calculate_percentage, result_df_sort)
 threshold_percent <- 95
  
 # Рассчитываем процент значений, не являющихся NA и не равных 0, для каждого пациента 
-percentage_non_zero_non_na <- rowMeans(!is.na(final_data_wide) & final_data_wide != 0, na.rm = TRUE) * 100 
+percentage_non_zero_non_na <- rowMeans(!is.na(data_wide) & data_wide != 0, na.rm = TRUE) * 100 
  
 # Создаем датафрейм с результатами 
 result_df_sort <- data.frame( 
-  patient_id = final_data_wide$patient_ID, 
+  patient_id = data_wide$patient_ID, 
   percentage = round(100 - percentage_non_zero_non_na, 2) # percentage означает пропущенные или 0 значения
 ) %>% arrange(desc(percentage))
 
@@ -266,40 +264,73 @@ filtered_patients <- result_df_sort[result_df_sort$percentage < threshold_percen
 write.xlsx(filtered_patients,
            file = "data/originals/percentage_by_patient.xlsx") 
 
-# Перезапись final_data_wide с удалением строк с процентом NA/0 более threshold_percent 
-final_data_wide <- final_data_wide %>% 
-  slice (filtered_patients$patient_id) #при threshold_percent = 95%, изменения final_data_wide не происходит, так как нет пациентов с процентом NA/0 более 95%
+# Перезапись data_wide с удалением строк с процентом NA/0 более threshold_percent 
+data_wide <- data_wide %>% 
+  slice (filtered_patients$patient_id) #при threshold_percent = 95%, изменения data_wide не происходит, так как нет пациентов с процентом NA/0 более 95%
 
 rm (percentage_non_zero_non_na, result_df_sort)
 
 ```
 
--   Сохранение `final_data_wide` после удаления колонок и строк с процентом NA/0 более threshold_percent
+-   Сохранение `data_wide` после удаления колонок и строк с процентом NA/0 более threshold_percent
 
 ```{r}
-final_data_wide <- 
-  final_data_wide %>% 
+data_wide <- data_wide %>% 
   select (patient_ID, any_of (colnames(combined_info)), everything()) %>% 
   arrange(patient_ID)
 
-write_rds(final_data_wide, 
-          file = "data/originals/final_data_wide.rds")
+write_rds(data_wide, 
+          file = "data/originals/data_wide.rds")
 
 ```
 
--   Перевод `final_data_wide` в длинный формат (`final_data_long`)
+### data_long
 
-```{r final_data_long}
+-   Перевод `data_wide` в длинный формат (`data_long`), загрузка  `bacterial_functions`, объединение `data_long` и `bacterial_functions`
 
-final_data_long <- final_data_wide %>% 
+```{r data_long, warning=FALSE}
+
+# Создание датасета в длинном формате
+data_long <- data_wide %>% 
   pivot_longer(ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")),
                names_to = "Taxon", 
                values_to = "Percentage")
 
-write_rds(final_data_long, 
-          file = "data/originals/final_data_long.rds",
+# Чтение листов Excel-файла с функциями бактерий и их объединение
+path <- "data/raw/Bacterial group functions.xlsx"
+taxon <- c ("TaxonName", "Rank")
+
+bac_functions <- read_xlsx (path, 1) %>% 
+  full_join(read_xlsx (path, 2), by = taxon) %>%
+  full_join(read_xlsx (path, 3), by = taxon) %>%
+  full_join(read_xlsx (path, 4), by = taxon) %>% 
+  full_join(read_xlsx (path, 5), by = taxon) %>%
+  full_join(read_xlsx (path, 6), by = taxon) %>%
+  full_join(read_xlsx (path, 7), by = taxon) %>%
+  unite("Taxon", TaxonName, Rank, sep = "_") %>% 
+  unite ("Habbit", Habbit, Habit_state, sep = "_") %>% 
+  mutate (Habbit = sub ("NA_NA", NA, Habbit)) %>%
+  pivot_wider (names_from = Habbit, values_from = Habbit) %>% 
+  mutate ("NA" = NULL) %>%
+  pivot_wider(names_from = Neuromediator, values_from = Neuromediator) %>% 
+  mutate ("NA" = NULL) %>% 
+  pivot_wider (names_from = Vitamin, values_from = Vitamin) %>% 
+  mutate ("NA" = NULL) %>%
+  unchop(everything()) %>% 
+  unique() %>% #удаление повторяющихся строк
+  filter (! (Taxon %in% c("Blautia obeum_S", "Paenibacillus_G", "Oxalobacter_G"))) #bac_functions$Taxon[duplicated(bac_functions$Taxon)] для данных таксонов в исходном файле указана противоречивая информация
+
+rm (path, taxon)
+
+#Перезапись data_long с добавлением функций бактерий
+data_long <- data_long %>% 
+  left_join (bac_functions, by = "Taxon")
+
+#Сохранение data_long.rds
+write_rds(data_long, 
+          file = "data/originals/data_long.rds",
           compress = "gz" ) 
-#final_data_long не загружается на GitHub (слишком большой), поэтому был сжат
+#data_long не загружается на GitHub (слишком большой), поэтому был сжат
 
 ```
 
@@ -320,7 +351,7 @@ result_dataset <- data.frame(
 alpha = 0.05
 
 # Объединяем датасеты по patient_id 
-combined_data <- final_data_wide %>%
+combined_data <- data_wide %>%
   select(Health_state,
     ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")))
 
@@ -432,7 +463,7 @@ adonis2(d ~ Health_state_n, data = df_full)
 
 ```{r}
 
-Wilcox_comparison_round_0 <- final_data_wide %>% 
+Wilcox_comparison_round_0 <- data_wide %>% 
   select(Health_state, Archaea, Bacteria,
          ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))) %>% 
   mutate(across (where (is.numeric), function (x) round (x,0))) %>% 
@@ -456,7 +487,7 @@ Wilcox_comparison_round_0 <- final_data_wide %>%
 
 ```{r}
 
-Wilcox_comparison_round_1 <- final_data_wide %>% 
+Wilcox_comparison_round_1 <- data_wide %>% 
   select(Health_state, Archaea, Bacteria,
          ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))) %>% 
   mutate(across (where (is.numeric), function (x) round (x,1))) %>% 
@@ -480,7 +511,7 @@ Wilcox_comparison_round_1 <- final_data_wide %>%
 
 ```{r}
 
-Wilcox_comparison_round_2 <- final_data_wide %>% 
+Wilcox_comparison_round_2 <- data_wide %>% 
   select(Health_state, Archaea, Bacteria,
          ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))) %>% 
   mutate(across (where (is.numeric), function (x) round (x,2))) %>% 

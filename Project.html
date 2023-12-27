@@ -11,7 +11,7 @@
 
 <meta name="author" content="Olga Potanina" />
 
-<meta name="date" content="2023-12-26" />
+<meta name="date" content="2023-12-27" />
 
 <title>Project</title>
 
@@ -415,7 +415,7 @@ display: none;
 
 <h1 class="title toc-ignore">Project</h1>
 <h4 class="author">Olga Potanina</h4>
-<h4 class="date">2023-12-26</h4>
+<h4 class="date">2023-12-27</h4>
 
 </div>
 
@@ -529,6 +529,7 @@ info_ibs &lt;- read_xlsx (&quot;data/raw/final_ibs_141_statistic.xlsx&quot;)</co
     Pets_type # только cat и NA
   ))
 
+rm (info_healthy, info_ibs)
 summary (combined_info)</code></pre>
 <pre><code>##   research_ID      patient_ID  Seq_region     Seq_date     Health_state
 ##  Min.   :1.000   Min.   :  1   V3-V4:106   Min.   :2015   Disease:170  
@@ -589,7 +590,7 @@ summary (combined_info)</code></pre>
   flextable() %&gt;% theme_box() %&gt;% 
   merge_v(c (&quot;research_ID&quot;, &quot;Country&quot;, &quot;Seq_date&quot;, &quot;Health_state&quot;)) %&gt;% 
   align(align = &quot;center&quot;, part = &quot;all&quot;)</code></pre>
-<div class="tabwid"><style>.cl-3d0d07d8{}.cl-3cf9394c{font-family:'Arial';font-size:11pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-3cf9396a{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-3d00b6b8{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3d00e1c4{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0.75pt solid rgba(102, 102, 102, 1.00);border-right: 0.75pt solid rgba(102, 102, 102, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3d00e1ce{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0.75pt solid rgba(102, 102, 102, 1.00);border-right: 0.75pt solid rgba(102, 102, 102, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-3d0d07d8"><thead><tr style="overflow-wrap:break-word;"><th class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9394c">research_ID</span></p></th><th class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9394c">Country</span></p></th><th class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9394c">Seq_date</span></p></th><th class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9394c">Health_state</span></p></th><th class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9394c">n</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1ce"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">1</span></p></td><td class="cl-3d00e1ce"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Belgium</span></p></td><td rowspan="2" class="cl-3d00e1ce"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,018</span></p></td><td rowspan="9" class="cl-3d00e1ce"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Health</span></p></td><td class="cl-3d00e1ce"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">46</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Italy</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">36</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">3</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Poland</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,023</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">70</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="18" class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">4</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Australia</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,021</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">6</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Austria</span></p></td><td rowspan="2" class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,020</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">3</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="2" class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Germany</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">33</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="6" class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,021</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">12</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Greece</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Hungary</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Ireland</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Disease</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Israel</span></p></td><td rowspan="2" class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Health</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Italy</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Norway</span></p></td><td rowspan="2" class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,018</span></p></td><td rowspan="12" class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Disease</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="3" class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">UK</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">7</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,020</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,021</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">3</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="5" class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">USA</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,018</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">6</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,020</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,021</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,022</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,023</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">5</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Austria</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,017</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">25</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">6</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Israel</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,022</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">22</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">7</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">Spain</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">2,015</span></p></td><td class="cl-3d00e1c4"><p class="cl-3d00b6b8"><span class="cl-3cf9396a">95</span></p></td></tr></tbody></table></div>
+<div class="tabwid"><style>.cl-dfec9d74{}.cl-dfe3febc{font-family:'Arial';font-size:11pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-dfe3fed0{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-dfe742fc{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-dfe75648{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0.75pt solid rgba(102, 102, 102, 1.00);border-right: 0.75pt solid rgba(102, 102, 102, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-dfe75652{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0.75pt solid rgba(102, 102, 102, 1.00);border-right: 0.75pt solid rgba(102, 102, 102, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-dfec9d74"><thead><tr style="overflow-wrap:break-word;"><th class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3febc">research_ID</span></p></th><th class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3febc">Country</span></p></th><th class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3febc">Seq_date</span></p></th><th class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3febc">Health_state</span></p></th><th class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3febc">n</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-dfe75652"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">1</span></p></td><td class="cl-dfe75652"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Belgium</span></p></td><td rowspan="2" class="cl-dfe75652"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,018</span></p></td><td rowspan="9" class="cl-dfe75652"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Health</span></p></td><td class="cl-dfe75652"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">46</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Italy</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">36</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">3</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Poland</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,023</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">70</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="18" class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">4</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Australia</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,021</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">6</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Austria</span></p></td><td rowspan="2" class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,020</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">3</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="2" class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Germany</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">33</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="6" class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,021</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">12</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Greece</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Hungary</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Ireland</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Disease</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Israel</span></p></td><td rowspan="2" class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Health</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Italy</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Norway</span></p></td><td rowspan="2" class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,018</span></p></td><td rowspan="12" class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Disease</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="3" class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">UK</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">7</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,020</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,021</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">3</span></p></td></tr><tr style="overflow-wrap:break-word;"><td rowspan="5" class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">USA</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,018</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">6</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,020</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,021</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">5</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,022</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,023</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">1</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">5</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Austria</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,017</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">25</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">6</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Israel</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,022</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">22</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">7</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">Spain</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">2,015</span></p></td><td class="cl-dfe75648"><p class="cl-dfe742fc"><span class="cl-dfe3fed0">95</span></p></td></tr></tbody></table></div>
 </div>
 <div id="tbl_summary-of-combined_info" class="section level4">
 <h4>tbl_summary of combined_info</h4>
@@ -603,20 +604,20 @@ combined_info %&gt;%
                             all_categorical() ~ c(0, 0)),
               by = Health_state) %&gt;%
   add_p()</code></pre>
-<div id="ijrjtutndr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#ijrjtutndr table {
+<div id="hdogrtdtrp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#hdogrtdtrp table {
 font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-#ijrjtutndr thead, #ijrjtutndr tbody, #ijrjtutndr tfoot, #ijrjtutndr tr, #ijrjtutndr td, #ijrjtutndr th {
+#hdogrtdtrp thead, #hdogrtdtrp tbody, #hdogrtdtrp tfoot, #hdogrtdtrp tr, #hdogrtdtrp td, #hdogrtdtrp th {
 border-style: none;
 }
-#ijrjtutndr p {
+#hdogrtdtrp p {
 margin: 0;
 padding: 0;
 }
-#ijrjtutndr .gt_table {
+#hdogrtdtrp .gt_table {
 display: table;
 border-collapse: collapse;
 line-height: normal;
@@ -641,11 +642,11 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#ijrjtutndr .gt_caption {
+#hdogrtdtrp .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#ijrjtutndr .gt_title {
+#hdogrtdtrp .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -656,7 +657,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#ijrjtutndr .gt_subtitle {
+#hdogrtdtrp .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -667,7 +668,7 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#ijrjtutndr .gt_heading {
+#hdogrtdtrp .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -678,12 +679,12 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#ijrjtutndr .gt_bottom_border {
+#hdogrtdtrp .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#ijrjtutndr .gt_col_headings {
+#hdogrtdtrp .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -697,7 +698,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#ijrjtutndr .gt_col_heading {
+#hdogrtdtrp .gt_col_heading {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -716,7 +717,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#ijrjtutndr .gt_column_spanner_outer {
+#hdogrtdtrp .gt_column_spanner_outer {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -727,13 +728,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#ijrjtutndr .gt_column_spanner_outer:first-child {
+#hdogrtdtrp .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#ijrjtutndr .gt_column_spanner_outer:last-child {
+#hdogrtdtrp .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#ijrjtutndr .gt_column_spanner {
+#hdogrtdtrp .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -744,10 +745,10 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#ijrjtutndr .gt_spanner_row {
+#hdogrtdtrp .gt_spanner_row {
 border-bottom-style: hidden;
 }
-#ijrjtutndr .gt_group_heading {
+#hdogrtdtrp .gt_group_heading {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -772,7 +773,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#ijrjtutndr .gt_empty_group_heading {
+#hdogrtdtrp .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -786,13 +787,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#ijrjtutndr .gt_from_md > :first-child {
+#hdogrtdtrp .gt_from_md > :first-child {
 margin-top: 0;
 }
-#ijrjtutndr .gt_from_md > :last-child {
+#hdogrtdtrp .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#ijrjtutndr .gt_row {
+#hdogrtdtrp .gt_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -810,7 +811,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#ijrjtutndr .gt_stub {
+#hdogrtdtrp .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -822,7 +823,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ijrjtutndr .gt_stub_row_group {
+#hdogrtdtrp .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -835,13 +836,13 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#ijrjtutndr .gt_row_group_first td {
+#hdogrtdtrp .gt_row_group_first td {
 border-top-width: 2px;
 }
-#ijrjtutndr .gt_row_group_first th {
+#hdogrtdtrp .gt_row_group_first th {
 border-top-width: 2px;
 }
-#ijrjtutndr .gt_summary_row {
+#hdogrtdtrp .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -850,14 +851,14 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ijrjtutndr .gt_first_summary_row {
+#hdogrtdtrp .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#ijrjtutndr .gt_first_summary_row.thick {
+#hdogrtdtrp .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#ijrjtutndr .gt_last_summary_row {
+#hdogrtdtrp .gt_last_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -866,7 +867,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#ijrjtutndr .gt_grand_summary_row {
+#hdogrtdtrp .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -875,7 +876,7 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ijrjtutndr .gt_first_grand_summary_row {
+#hdogrtdtrp .gt_first_grand_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -884,7 +885,7 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#ijrjtutndr .gt_last_grand_summary_row_top {
+#hdogrtdtrp .gt_last_grand_summary_row_top {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -893,10 +894,10 @@ border-bottom-style: double;
 border-bottom-width: 6px;
 border-bottom-color: #D3D3D3;
 }
-#ijrjtutndr .gt_striped {
+#hdogrtdtrp .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#ijrjtutndr .gt_table_body {
+#hdogrtdtrp .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -904,7 +905,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#ijrjtutndr .gt_footnotes {
+#hdogrtdtrp .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -917,7 +918,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#ijrjtutndr .gt_footnote {
+#hdogrtdtrp .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-top: 4px;
@@ -925,7 +926,7 @@ padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ijrjtutndr .gt_sourcenotes {
+#hdogrtdtrp .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -938,57 +939,57 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#ijrjtutndr .gt_sourcenote {
+#hdogrtdtrp .gt_sourcenote {
 font-size: 90%;
 padding-top: 4px;
 padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ijrjtutndr .gt_left {
+#hdogrtdtrp .gt_left {
 text-align: left;
 }
-#ijrjtutndr .gt_center {
+#hdogrtdtrp .gt_center {
 text-align: center;
 }
-#ijrjtutndr .gt_right {
+#hdogrtdtrp .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#ijrjtutndr .gt_font_normal {
+#hdogrtdtrp .gt_font_normal {
 font-weight: normal;
 }
-#ijrjtutndr .gt_font_bold {
+#hdogrtdtrp .gt_font_bold {
 font-weight: bold;
 }
-#ijrjtutndr .gt_font_italic {
+#hdogrtdtrp .gt_font_italic {
 font-style: italic;
 }
-#ijrjtutndr .gt_super {
+#hdogrtdtrp .gt_super {
 font-size: 65%;
 }
-#ijrjtutndr .gt_footnote_marks {
+#hdogrtdtrp .gt_footnote_marks {
 font-size: 75%;
 vertical-align: 0.4em;
 position: initial;
 }
-#ijrjtutndr .gt_asterisk {
+#hdogrtdtrp .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#ijrjtutndr .gt_indent_1 {
+#hdogrtdtrp .gt_indent_1 {
 text-indent: 5px;
 }
-#ijrjtutndr .gt_indent_2 {
+#hdogrtdtrp .gt_indent_2 {
 text-indent: 10px;
 }
-#ijrjtutndr .gt_indent_3 {
+#hdogrtdtrp .gt_indent_3 {
 text-indent: 15px;
 }
-#ijrjtutndr .gt_indent_4 {
+#hdogrtdtrp .gt_indent_4 {
 text-indent: 20px;
 }
-#ijrjtutndr .gt_indent_5 {
+#hdogrtdtrp .gt_indent_5 {
 text-indent: 25px;
 }
 </style>
@@ -1387,32 +1388,30 @@ combined_bacteria &lt;- bacteria_healthy %&gt;%
 rm (bacteria_healthy, bacteria_ibs)</code></pre>
 <ul>
 <li>Объединение <code>combined_bacteria</code> и
-<code>combined_info</code> в <code>final_data_wide</code></li>
+<code>combined_info</code> в <code>data_wide</code></li>
 </ul>
-<pre class="r"><code>final_data_wide &lt;- combined_info %&gt;% 
-  bind_cols(combined_bacteria) %&gt;% 
-  rename(patient_ID = patient_ID...2) %&gt;% 
-  mutate(patient_ID...22 = NULL)</code></pre>
+<pre class="r"><code>data_wide &lt;- combined_info %&gt;% 
+  left_join (combined_bacteria)</code></pre>
 </div>
 </div>
 <div id="оценка-доли-na-и-нулевых-значений" class="section level2">
 <h2>Оценка доли NA и нулевых значений</h2>
 <ul>
-<li>Оценка доли NA в переменных <code>final_data_wide</code></li>
+<li>Оценка доли NA в переменных <code>data_wide</code></li>
 </ul>
-<pre class="r"><code>final_data_wide %&gt;% 
-  select (where (function(x) sum (is.na(x))/ nrow(final_data_wide) * 100 &gt; 0)) %&gt;% 
-  sapply (function(x) sum (is.na(x))/ nrow(final_data_wide) * 100) %&gt;% round(1) %&gt;% 
+<pre class="r"><code>data_wide %&gt;% 
+  select (where (function(x) sum (is.na(x))/ nrow(data_wide) * 100 &gt; 0)) %&gt;% 
+  sapply (function(x) sum (is.na(x))/ nrow(data_wide) * 100) %&gt;% round(1) %&gt;% 
   as.data.frame() %&gt;% 
   rename(NA_percentage = &quot;.&quot;) %&gt;% 
   mutate (
-    &quot;Number of people with known data&quot; = round (nrow(final_data_wide) - NA_percentage/100 * nrow(final_data_wide)),
+    &quot;Number of people with known data&quot; = round (nrow(data_wide) - NA_percentage/100 * nrow(data_wide)),
     NA_percentage = paste (NA_percentage, &quot;%&quot;, sep = &quot; &quot;)
     ) %&gt;% 
   arrange(desc (NA_percentage)) %&gt;% 
   rownames_to_column() %&gt;% 
   as_tibble() %&gt;% flextable()</code></pre>
-<div class="tabwid"><style>.cl-4c17441e{}.cl-4bde50b4{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-4c0c9884{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-4c0c9898{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-4c0cbf1c{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4c0cbf26{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4c0cbf27{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4c0cbf30{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4c0cbf3a{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4c0cbf44{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-4c17441e"><thead><tr style="overflow-wrap:break-word;"><th class="cl-4c0cbf1c"><p class="cl-4c0c9884"><span class="cl-4bde50b4">rowname</span></p></th><th class="cl-4c0cbf1c"><p class="cl-4c0c9884"><span class="cl-4bde50b4">NA_percentage</span></p></th><th class="cl-4c0cbf26"><p class="cl-4c0c9898"><span class="cl-4bde50b4">Number of people with known data</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Additive_usage</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">97.1 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">11</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Diet_duration</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">96.6 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">13</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Diet_type</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">95.3 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">18</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Education_level</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">78 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">84</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Travel_period</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">77.4 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">86</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Cosmetics</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">77.4 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">86</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Alcohol</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">77.2 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">87</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Sleep_duration</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">77.2 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">87</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Race</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">65.9 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">130</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Age</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">64.8 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">134</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Antibiotics_usage</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">53.5 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">177</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Sex</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">49.9 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">191</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Smoking</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">46.7 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">203</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">Physical_activity</span></p></td><td class="cl-4c0cbf27"><p class="cl-4c0c9884"><span class="cl-4bde50b4">46.7 %</span></p></td><td class="cl-4c0cbf30"><p class="cl-4c0c9898"><span class="cl-4bde50b4">203</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4c0cbf3a"><p class="cl-4c0c9884"><span class="cl-4bde50b4">BMI_category</span></p></td><td class="cl-4c0cbf3a"><p class="cl-4c0c9884"><span class="cl-4bde50b4">23.1 %</span></p></td><td class="cl-4c0cbf44"><p class="cl-4c0c9898"><span class="cl-4bde50b4">293</span></p></td></tr></tbody></table></div>
+<div class="tabwid"><style>.cl-e641d914{}.cl-e63a647c{font-family:'Arial';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-e63d48a4{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e63d48b8{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e63d5ad8{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e63d5ad9{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e63d5ada{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e63d5ae2{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e63d5ae3{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e63d5ae4{width:0.75in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-e641d914"><thead><tr style="overflow-wrap:break-word;"><th class="cl-e63d5ad8"><p class="cl-e63d48a4"><span class="cl-e63a647c">rowname</span></p></th><th class="cl-e63d5ad8"><p class="cl-e63d48a4"><span class="cl-e63a647c">NA_percentage</span></p></th><th class="cl-e63d5ad9"><p class="cl-e63d48b8"><span class="cl-e63a647c">Number of people with known data</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Additive_usage</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">97.1 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">11</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Diet_duration</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">96.6 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">13</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Diet_type</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">95.3 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">18</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Education_level</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">78 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">84</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Travel_period</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">77.4 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">86</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Cosmetics</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">77.4 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">86</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Alcohol</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">77.2 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">87</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Sleep_duration</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">77.2 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">87</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Race</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">65.9 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">130</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Age</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">64.8 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">134</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Antibiotics_usage</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">53.5 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">177</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Sex</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">49.9 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">191</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Smoking</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">46.7 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">203</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">Physical_activity</span></p></td><td class="cl-e63d5ada"><p class="cl-e63d48a4"><span class="cl-e63a647c">46.7 %</span></p></td><td class="cl-e63d5ae2"><p class="cl-e63d48b8"><span class="cl-e63a647c">203</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e63d5ae3"><p class="cl-e63d48a4"><span class="cl-e63a647c">BMI_category</span></p></td><td class="cl-e63d5ae3"><p class="cl-e63d48a4"><span class="cl-e63a647c">23.1 %</span></p></td><td class="cl-e63d5ae4"><p class="cl-e63d48b8"><span class="cl-e63a647c">293</span></p></td></tr></tbody></table></div>
 <ul>
 <li>Рассчитаем процент не NA и не 0 данных по колонкам широкого
 формата</li>
@@ -1426,7 +1425,7 @@ calculate_percentage &lt;- function(col) {
 } 
  
 # Применяем функцию к каждой колонке в датасете 
-percentage_non_zero_non_na &lt;- sapply(final_data_wide[, -1], calculate_percentage) 
+percentage_non_zero_non_na &lt;- sapply(data_wide[, -1], calculate_percentage) 
  
 # Создаем датафрейм с результатами 
 result_df_sort &lt;- data.frame( 
@@ -1442,8 +1441,8 @@ filtered_columns &lt;- result_df_sort[result_df_sort$percentage &lt; threshold_p
 write.xlsx(filtered_columns, 
            file = &quot;data/originals/percentage_by_vars.xlsx&quot;)
 
-# Перезапись final_data_wide с выбором колонок с процентом NA/0 менее threshold_percent 
-final_data_wide &lt;- final_data_wide %&gt;% 
+# Перезапись data_wide с выбором колонок с процентом NA/0 менее threshold_percent 
+data_wide &lt;- data_wide %&gt;% 
   select (row.names(filtered_columns), research_ID)
 
 rm (calculate_percentage, result_df_sort)</code></pre>
@@ -1455,11 +1454,11 @@ rm (calculate_percentage, result_df_sort)</code></pre>
 threshold_percent &lt;- 95
  
 # Рассчитываем процент значений, не являющихся NA и не равных 0, для каждого пациента 
-percentage_non_zero_non_na &lt;- rowMeans(!is.na(final_data_wide) &amp; final_data_wide != 0, na.rm = TRUE) * 100 
+percentage_non_zero_non_na &lt;- rowMeans(!is.na(data_wide) &amp; data_wide != 0, na.rm = TRUE) * 100 
  
 # Создаем датафрейм с результатами 
 result_df_sort &lt;- data.frame( 
-  patient_id = final_data_wide$patient_ID, 
+  patient_id = data_wide$patient_ID, 
   percentage = round(100 - percentage_non_zero_non_na, 2) # percentage означает пропущенные или 0 значения
 ) %&gt;% arrange(desc(percentage))
 
@@ -1470,35 +1469,71 @@ filtered_patients &lt;- result_df_sort[result_df_sort$percentage &lt; threshold_
 write.xlsx(filtered_patients,
            file = &quot;data/originals/percentage_by_patient.xlsx&quot;) 
 
-# Перезапись final_data_wide с удалением строк с процентом NA/0 более threshold_percent 
-final_data_wide &lt;- final_data_wide %&gt;% 
-  slice (filtered_patients$patient_id) #при threshold_percent = 95%, изменения final_data_wide не происходит, так как нет пациентов с процентом NA/0 более 95%
+# Перезапись data_wide с удалением строк с процентом NA/0 более threshold_percent 
+data_wide &lt;- data_wide %&gt;% 
+  slice (filtered_patients$patient_id) #при threshold_percent = 95%, изменения data_wide не происходит, так как нет пациентов с процентом NA/0 более 95%
 
 rm (percentage_non_zero_non_na, result_df_sort)</code></pre>
 <ul>
-<li>Сохранение <code>final_data_wide</code> после удаления колонок и
-строк с процентом NA/0 более threshold_percent</li>
+<li>Сохранение <code>data_wide</code> после удаления колонок и строк с
+процентом NA/0 более threshold_percent</li>
 </ul>
-<pre class="r"><code>final_data_wide &lt;- 
-  final_data_wide %&gt;% 
+<pre class="r"><code>data_wide &lt;- data_wide %&gt;% 
   select (patient_ID, any_of (colnames(combined_info)), everything()) %&gt;% 
   arrange(patient_ID)
 
-write_rds(final_data_wide, 
-          file = &quot;data/originals/final_data_wide.rds&quot;)</code></pre>
+write_rds(data_wide, 
+          file = &quot;data/originals/data_wide.rds&quot;)</code></pre>
+<div id="data_long" class="section level3">
+<h3>data_long</h3>
 <ul>
-<li>Перевод <code>final_data_wide</code> в длинный формат
-(<code>final_data_long</code>)</li>
+<li>Перевод <code>data_wide</code> в длинный формат
+(<code>data_long</code>), загрузка <code>bacterial_functions</code>,
+объединение <code>data_long</code> и
+<code>bacterial_functions</code></li>
 </ul>
-<pre class="r"><code>final_data_long &lt;- final_data_wide %&gt;% 
+<pre class="r"><code># Создание датасета в длинном формате
+data_long &lt;- data_wide %&gt;% 
   pivot_longer(ends_with(c(&quot;_D&quot;, &quot;_P&quot;, &quot;_O&quot;, &quot;_C&quot;, &quot;_F&quot;, &quot;_G&quot;)),
                names_to = &quot;Taxon&quot;, 
                values_to = &quot;Percentage&quot;)
 
-write_rds(final_data_long, 
-          file = &quot;data/originals/final_data_long.rds&quot;,
+# Чтение листов Excel-файла с функциями бактерий и их объединение
+path &lt;- &quot;data/raw/Bacterial group functions.xlsx&quot;
+taxon &lt;- c (&quot;TaxonName&quot;, &quot;Rank&quot;)
+
+bac_functions &lt;- read_xlsx (path, 1) %&gt;% 
+  full_join(read_xlsx (path, 2), by = taxon) %&gt;%
+  full_join(read_xlsx (path, 3), by = taxon) %&gt;%
+  full_join(read_xlsx (path, 4), by = taxon) %&gt;% 
+  full_join(read_xlsx (path, 5), by = taxon) %&gt;%
+  full_join(read_xlsx (path, 6), by = taxon) %&gt;%
+  full_join(read_xlsx (path, 7), by = taxon) %&gt;%
+  unite(&quot;Taxon&quot;, TaxonName, Rank, sep = &quot;_&quot;) %&gt;% 
+  unite (&quot;Habbit&quot;, Habbit, Habit_state, sep = &quot;_&quot;) %&gt;% 
+  mutate (Habbit = sub (&quot;NA_NA&quot;, NA, Habbit)) %&gt;%
+  pivot_wider (names_from = Habbit, values_from = Habbit) %&gt;% 
+  mutate (&quot;NA&quot; = NULL) %&gt;%
+  pivot_wider(names_from = Neuromediator, values_from = Neuromediator) %&gt;% 
+  mutate (&quot;NA&quot; = NULL) %&gt;% 
+  pivot_wider (names_from = Vitamin, values_from = Vitamin) %&gt;% 
+  mutate (&quot;NA&quot; = NULL) %&gt;%
+  unchop(everything()) %&gt;% 
+  unique() %&gt;% #удаление повторяющихся строк
+  filter (! (Taxon %in% c(&quot;Blautia obeum_S&quot;, &quot;Paenibacillus_G&quot;, &quot;Oxalobacter_G&quot;))) #bac_functions$Taxon[duplicated(bac_functions$Taxon)] для данных таксонов в исходном файле указана противоречивая информация
+
+rm (path, taxon)
+
+#Перезапись data_long с добавлением функций бактерий
+data_long &lt;- data_long %&gt;% 
+  left_join (bac_functions, by = &quot;Taxon&quot;)
+
+#Сохранение data_long.rds
+write_rds(data_long, 
+          file = &quot;data/originals/data_long.rds&quot;,
           compress = &quot;gz&quot; ) 
-#final_data_long не загружается на GitHub (слишком большой), поэтому был сжат</code></pre>
+#data_long не загружается на GitHub (слишком большой), поэтому был сжат</code></pre>
+</div>
 </div>
 <div id="факторный-анализ" class="section level2">
 <h2>Факторный анализ</h2>
@@ -1519,7 +1554,7 @@ result_dataset &lt;- data.frame(
 alpha = 0.05
 
 # Объединяем датасеты по patient_id 
-combined_data &lt;- final_data_wide %&gt;%
+combined_data &lt;- data_wide %&gt;%
   select(Health_state,
     ends_with(c(&quot;_D&quot;, &quot;_P&quot;, &quot;_O&quot;, &quot;_C&quot;, &quot;_F&quot;, &quot;_G&quot;)))
 
@@ -2027,7 +2062,7 @@ ggplot(df_full, aes(x = x, y = y, color = Health_state)) +
 <ul>
 <li>после округления всех значений <strong>до целого</strong></li>
 </ul>
-<pre class="r"><code>Wilcox_comparison_round_0 &lt;- final_data_wide %&gt;% 
+<pre class="r"><code>Wilcox_comparison_round_0 &lt;- data_wide %&gt;% 
   select(Health_state, Archaea, Bacteria,
          ends_with(c(&quot;_D&quot;, &quot;_P&quot;, &quot;_O&quot;, &quot;_C&quot;, &quot;_F&quot;, &quot;_G&quot;))) %&gt;% 
   mutate(across (where (is.numeric), function (x) round (x,0))) %&gt;% 
@@ -2051,7 +2086,7 @@ ggplot(df_full, aes(x = x, y = y, color = Health_state)) +
 <ul>
 <li>после округления всех значений <strong>до десятых</strong></li>
 </ul>
-<pre class="r"><code>Wilcox_comparison_round_1 &lt;- final_data_wide %&gt;% 
+<pre class="r"><code>Wilcox_comparison_round_1 &lt;- data_wide %&gt;% 
   select(Health_state, Archaea, Bacteria,
          ends_with(c(&quot;_D&quot;, &quot;_P&quot;, &quot;_O&quot;, &quot;_C&quot;, &quot;_F&quot;, &quot;_G&quot;))) %&gt;% 
   mutate(across (where (is.numeric), function (x) round (x,1))) %&gt;% 
@@ -2075,7 +2110,7 @@ ggplot(df_full, aes(x = x, y = y, color = Health_state)) +
 <ul>
 <li>после округления всех значений <strong>до сотых</strong></li>
 </ul>
-<pre class="r"><code>Wilcox_comparison_round_2 &lt;- final_data_wide %&gt;% 
+<pre class="r"><code>Wilcox_comparison_round_2 &lt;- data_wide %&gt;% 
   select(Health_state, Archaea, Bacteria,
          ends_with(c(&quot;_D&quot;, &quot;_P&quot;, &quot;_O&quot;, &quot;_C&quot;, &quot;_F&quot;, &quot;_G&quot;))) %&gt;% 
   mutate(across (where (is.numeric), function (x) round (x,2))) %&gt;% 
