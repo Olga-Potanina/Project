@@ -293,8 +293,7 @@ write_rds(data_wide,
 # Создание датасета в длинном формате
 data_long <- data_wide %>% 
   pivot_longer(ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")),
-               names_to = "Taxon", 
-               values_to = "Percentage")
+               names_to = "Taxon", values_to = "Percentage")
 
 # Чтение листов Excel-файла с функциями бактерий и их объединение
 path <- "data/raw/Bacterial group functions.xlsx"
@@ -312,13 +311,18 @@ bac_functions <- read_xlsx (path, 1) %>%
   mutate (Habbit = sub ("NA_NA", NA, Habbit)) %>%
   pivot_wider (names_from = Habbit, values_from = Habbit) %>% 
   mutate ("NA" = NULL) %>%
-  pivot_wider(names_from = Neuromediator, values_from = Neuromediator) %>% 
+  unite ("Neuromediator_destroy", Neuromediator, Destroy, sep = "_") %>% 
+  mutate (Neuromediator_destroy = sub ("NA_NA", NA, Neuromediator_destroy)) %>% 
+  pivot_wider(names_from = Neuromediator_destroy, values_from = Neuromediator_destroy) %>%
   mutate ("NA" = NULL) %>% 
   pivot_wider (names_from = Vitamin, values_from = Vitamin) %>% 
   mutate ("NA" = NULL) %>%
   unchop(everything()) %>% 
   unique() %>% #удаление повторяющихся строк
-  filter (! (Taxon %in% c("Blautia obeum_S", "Paenibacillus_G", "Oxalobacter_G"))) #bac_functions$Taxon[duplicated(bac_functions$Taxon)] для данных таксонов в исходном файле указана противоречивая информация
+  filter (Taxon != "Blautia obeum_S") %>% #для данного таксона противоречивая информация в Продуценты КЦЖК
+  mutate (across (
+    (3:31), function (x) ifelse (is.na(x), NA, 1))) %>% 
+  mutate_all(as.factor)
 
 rm (path, taxon)
 
@@ -329,8 +333,31 @@ data_long <- data_long %>%
 #Сохранение data_long.rds
 write_rds(data_long, 
           file = "data/originals/data_long.rds",
-          compress = "gz" ) 
-#data_long не загружается на GitHub (слишком большой), поэтому был сжат
+          compress = "gz") 
+
+```
+
+- Создание отдельных длинных датасетов для каждого таксона
+
+```{r}
+
+G_long <- data_long %>% subset(grepl("_G", Taxon)) 
+# %>% select (where (function(x) sum (is.na(x))/ nrow(.) * 100 < threshold_percent))
+F_long <- data_long %>% subset(grepl("_F", Taxon))
+C_long <- data_long %>% subset(grepl("_C", Taxon))
+O_long <- data_long %>% subset(grepl("_O", Taxon))
+P_long <- data_long %>% subset(grepl("_P", Taxon))
+
+write_rds(G_long, 
+          file = "data/originals/G_long.rds", "gz") 
+write_rds(F_long, 
+          file = "data/originals/F_long.rds", "gz") 
+write_rds(C_long, 
+          file = "data/originals/C_long.rds", "gz") 
+write_rds(O_long, 
+          file = "data/originals/O_long.rds", "gz") 
+write_rds(P_long, 
+          file = "data/originals/P_long.rds", "gz") 
 
 ```
 
