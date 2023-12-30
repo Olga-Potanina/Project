@@ -363,7 +363,7 @@ write_rds(P_long,
 
 ## Факторный анализ
 
--   Проведем множественное сравнение каждого таксона из `combined_bacteria` с по группе `Health_state` из `combined_info`
+-   Проведем множественное сравнение каждого таксона из `combined_bacteria` с по группе `Health_state` из `combined_info` без учета таксономического уровня.
 
 ```{r}
 # Создание нового датасета для сохранения результатов
@@ -459,7 +459,10 @@ print(result_dataset_pass)
 
 ```{r}
 
-d <- dist(combined_bacteria) # euclidean distances between the rows
+combined_bacteria_G <- combined_bacteria_clean %>%
+  select(Health_state, ends_with("_G"))
+
+d <- dist(combined_bacteria_G) # euclidean distances between the rows
 fit <- cmdscale(d,eig=TRUE, k=2) # k is the number of dim
 
 df_mds <- data.frame(
@@ -556,5 +559,267 @@ Wilcox_comparison_round_2 <- data_wide %>%
  "Количество значимо различающихся таксонов по p_value_BH" = nrow (Wilcox_comparison_round_2 %>% filter (p_value_BH <= 0.05 ))
  )
  
+```
+
+## Распределения таксонов G(Genus - Род)
+
+#### Гистограмма по количеству пациентов (Здоров - СРК)
+
+```{r Genus bar plot by Health_state}
+library(ggplot2)
+library(dplyr)
+
+# Получаем уникальные таксоны, удовлетворяющие условиям
+unique_taxa <- Wilcox_comparison_round_2 %>%
+  subset(grepl("_G", Taxon)) %>%
+  filter(p_value_holm < 0.05) %>%
+  distinct(Taxon)
+
+# Определяем размер шага (20 таксонов на каждой итерации)
+step_size <- 18
+
+# Разбиваем уникальные таксоны на группы по step_size
+taxon_groups <- split(unique_taxa, rep(1:ceiling(nrow(unique_taxa) / step_size), each = step_size, length.out = nrow(unique_taxa)))
+
+# Проходим по группам и строим графики
+for (i in seq_along(taxon_groups)) {
+  current_taxa <- taxon_groups[[i]]
+  
+  G_long_filtered <- G_long %>%
+    filter(Taxon %in% current_taxa$Taxon & Percentage > 0) %>%
+    group_by(Health_state, Taxon) %>%
+    summarise(Count = n(), .groups = "drop")
+  
+  bar_plot <- ggplot(G_long_filtered, aes(x = Health_state, y = Count, fill = Health_state == "Disease")) +
+    geom_bar(position = "dodge", color = "black", stat = "identity") +
+    scale_fill_manual(values = c("skyblue", "red"), guide = FALSE) +
+    labs(title = paste("Гистограмма для таксонов", (i - 1) * step_size + 1, "до", min(i * step_size, nrow(unique_taxa)), "в разрезе Health_state"),
+         x = "Статус пациента",
+         y = "Количество пациентов, у которых обнаружен данный таксон") +
+    coord_flip() +
+    facet_wrap(~Taxon, scales = "free_y", ncol = 2, shrink = 0.7) +  # Уменьшение пространства между фасетами
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5),  # Поворот текста на оси X и уменьшение шрифта
+          axis.text.y = element_text(hjust = 1, size = 5),
+          strip.text = element_text(size = 5))  # Уменьшение шрифта для названия фасет
+  
+  print(bar_plot)  # Отображение графика на экране
+  
+}
+
+```
+
+### график солнышко не готов пока 😭
+
+```{r}
+
+# Создаем набор данных с ограничением на первые 10 таксонов с разными Health_state
+library(dplyr)
+
+unique_taxa <- Wilcox_comparison_round_2 %>%
+  subset(grepl("_G", Taxon)) %>%
+  filter(p_value_holm < 0.05) %>%
+  distinct(Taxon)
+
+data <- G_long %>%
+  filter(Taxon %in% unique_taxa$Taxon & Percentage > 0) %>%
+  group_by(Taxon, Health_state) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  arrange(Taxon, Health_state) %>%
+  slice_head(n = 20)
+
+# Add a unique id for each Taxon
+data <- data %>%
+  mutate(id = group_indices(., Taxon))
+
+# Set a number of 'empty bar'
+empty_bar <- 10
+
+# Create empty rows with unique id for each Taxon
+to_add <- data.frame(
+  Taxon = rep(unique(data$Taxon), each = empty_bar),
+  Health_state = rep(levels(data$Health_state), times = length(unique(data$Taxon))),
+  Count = rep(NA, empty_bar),
+  id = rep(seq_len(length(unique(data$Taxon))), each = empty_bar)
+)
+
+# Combine the initial dataset with the empty rows
+data <- rbind(data, to_add) %>%
+  arrange(Taxon, Health_state)
+
+# Reset the id values
+data$id <- seq_len(nrow(data))
+
+
+# Исправление: создание переменной value на основе Count
+data$value <- data$Count
+ 
+# Get the name and the y position of each label
+label_data <- data
+number_of_bar <- nrow(label_data)/2
+angle <- 90 - 360 * (label_data$id-0.5) / (number_of_bar * 2)
+label_data$hjust <- ifelse(angle < -90, 1, 0)
+label_data$angle <- ifelse(angle < -90, angle+180, angle)
+ 
+# Make the plot
+p <- ggplot(data, aes(x=as.factor(id), y=value, fill=Health_state)) +       
+  geom_bar(stat="identity", position="stack", alpha=0.7) +
+  scale_fill_manual(values = c("skyblue", "red")) +  # Используем только два цвета
+  ylim(c(0, max(data$value) + 10)) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.margin = unit(rep(-1,4), "cm") 
+  ) +
+  coord_polar(start = 0) + 
+  geom_text(data=label_data, aes(x=id, y=value+5, label=Taxon, hjust=hjust), color="black", fontface="bold", alpha=0.6, size=2.5, angle=label_data$angle, inherit.aes = FALSE ) +
+  geom_text(aes(x=as.factor(id), y=value, label=Count), position=position_stack(vjust=0.5), size=2.5, color="black") +  # Добавление количества наблюдений
+  labs(title = "График 'солнышко' для первых 10 пар таксонов с разными Health_state")
+
+print(p)
+```
+
+
+#### Боксплот по возрасту
+
+```{r box plot for age by Health_state, warning=FALSE}
+
+# Определяем размер шага (4 таксона на каждой итерации)
+step_size <- 4
+
+# Разбиваем уникальные таксоны на группы по step_size
+taxon_groups <- split(unique_taxa, rep(1:ceiling(nrow(unique_taxa) / step_size), each = step_size, length.out = nrow(unique_taxa)))
+
+# Проходим по группам и строим боксплоты для переменной Age
+for (i in seq_along(taxon_groups)) {
+  current_taxa <- taxon_groups[[i]]
+  
+  G_long_filtered <- G_long %>%
+    filter(Taxon %in% current_taxa$Taxon & Percentage > 0)
+  
+  # Строим боксплот
+  box_plot <- ggplot(G_long_filtered, aes(x = Health_state, y = Age, fill = Health_state)) +
+    geom_boxplot() +
+    labs(title = paste("Боксплоты для таксонов по статусу"),
+         x = "Health_state",
+         y = "Age") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),  # Уменьшаем размер шрифта для подписей Taxon
+          axis.title.x = element_blank(),  # Убираем название оси X
+          legend.position = "bottom") +  # Перемещаем легенду вниз
+    scale_fill_manual(values = c("red", "skyblue")) +
+    facet_grid(~Taxon, scales = "free_y", space = "free")  # Используем facet_grid вместо facet_wrap
+  
+  # Отображаем график на экране
+  print(box_plot)
+  
+}
+
+```
+
+### Боксплот по возросту и полу
+
+```{r, warning=FALSE}
+
+# Определяем размер шага (3 таксона на каждой итерации)
+step_size <- 3
+
+# Разбиваем уникальные таксоны на группы по step_size
+taxon_groups <- split(unique_taxa, rep(1:ceiling(nrow(unique_taxa) / step_size), each = step_size, length.out = nrow(unique_taxa)))
+
+# Проходим по группам и строим боксплоты для переменной Age
+for (i in seq_along(taxon_groups)) {
+  current_taxa <- taxon_groups[[i]]
+  
+  G_long_filtered <- G_long %>%
+    filter(Taxon %in% current_taxa$Taxon & Percentage > 0)
+  
+  # Строим боксплот
+  box_plot <- ggplot(G_long_filtered, aes(x = interaction(Health_state, Sex), y = Age, fill = Health_state)) +
+    geom_boxplot() +
+    labs(title = paste("Боксплоты для таксона (Пол + статус заболевания)"),
+         x = "Health_state + Sex",
+         y = "Age") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),  # Уменьшаем размер шрифта для подписей Taxon
+          axis.title.x = element_blank(),  # Убираем название оси X
+          legend.position = "bottom") +  # Перемещаем легенду вниз
+    scale_fill_manual(values = c("red", "skyblue")) +
+    facet_grid(~Taxon, scales = "free_y", space = "free")  # Используем facet_grid вместо facet_wrap
+  
+  # Отображаем график на экране
+  print(box_plot)
+  
+}
+
+```
+
+### Боксплот по возросту и статусу курения
+
+```{r, warning=FALSE}
+
+# Определяем размер шага (3 таксона на каждой итерации)
+step_size <- 3
+
+# Разбиваем уникальные таксоны на группы по step_size
+taxon_groups <- split(unique_taxa, rep(1:ceiling(nrow(unique_taxa) / step_size), each = step_size, length.out = nrow(unique_taxa)))
+
+# Проходим по группам и строим боксплоты для переменной Age
+for (i in seq_along(taxon_groups)) {
+  current_taxa <- taxon_groups[[i]]
+  
+  G_long_filtered <- G_long %>%
+    filter(Taxon %in% current_taxa$Taxon & Percentage > 0)
+  
+  # Строим боксплот
+  box_plot <- ggplot(G_long_filtered, aes(x = interaction(Health_state, Smoking), y = Age, fill = Health_state)) +
+    geom_boxplot() +
+    labs(title = paste("Боксплоты для таксона (Статус курения + статус заболевания)"),
+         x = "Health_state + Smoking",
+         y = "Age") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),  # Уменьшаем размер шрифта для подписей Taxon
+          axis.title.x = element_blank(),  # Убираем название оси X
+          legend.position = "bottom") +  # Перемещаем легенду вниз
+    scale_fill_manual(values = c("red", "skyblue")) +
+    facet_grid(~Taxon, scales = "free_y", space = "free")  # Используем facet_grid вместо facet_wrap
+  
+  # Отображаем график на экране
+  print(box_plot)
+  
+}
+```
+
+### Боксплот по возросту и статусу употребления алкоголя
+
+```{r, warning=FALSE}
+
+# Определяем размер шага (3 таксона на каждой итерации)
+step_size <- 3
+
+# Разбиваем уникальные таксоны на группы по step_size
+taxon_groups <- split(unique_taxa, rep(1:ceiling(nrow(unique_taxa) / step_size), each = step_size, length.out = nrow(unique_taxa)))
+
+# Проходим по группам и строим боксплоты для переменной Age
+for (i in seq_along(taxon_groups)) {
+  current_taxa <- taxon_groups[[i]]
+  
+  G_long_filtered <- G_long %>%
+    filter(Taxon %in% current_taxa$Taxon & Percentage > 0)
+  
+  # Строим боксплот
+  box_plot <- ggplot(G_long_filtered, aes(x = interaction(Health_state, Alcohol), y = Age, fill = Health_state)) +
+    geom_boxplot() +
+    labs(title = paste("Боксплоты для таксона (Статус употребления алкоголя + статус заболевания)"),
+         x = "Health_state + Alcohol",
+         y = "Age") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),  # Уменьшаем размер шрифта для подписей Taxon
+          axis.title.x = element_blank(),  # Убираем название оси X
+          legend.position = "bottom") +  # Перемещаем легенду вниз
+    scale_fill_manual(values = c("red", "skyblue")) +
+    facet_grid(~Taxon, scales = "free_y", space = "free")  # Используем facet_grid вместо facet_wrap
+  
+  # Отображаем график на экране
+  print(box_plot)
+  
+}
 ```
 
