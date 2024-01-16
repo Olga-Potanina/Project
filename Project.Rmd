@@ -472,7 +472,37 @@ print(result_dataset_pass)
 
 ```
 
+-   Посмотрим на данные здоровых людей и людей с СРК как на многомерный вектор по всем таксонам и группам
 
+```{r}
+
+combined_bacteria_G <- combined_bacteria_clean %>%
+  select(Health_state, ends_with("_G"))
+
+d <- dist(combined_bacteria_G) # euclidean distances between the rows
+fit <- cmdscale(d,eig=TRUE, k=2) # k is the number of dim
+
+df_mds <- data.frame(
+  x = fit$points[,1],
+  y = fit$points[,2]
+  )  
+
+df_full <- cbind(df_mds, combined_info) %>% mutate(Health_state_n = case_when(Health_state == "Health"  ~ 0,
+                                                                              Health_state == "Disease" ~ 1))
+
+ggplot(df_full, aes(x = x, y = y, color = Health_state)) +
+  geom_point() +
+  theme_bw() +
+  ggtitle("Распределение вектора таксонов в зависимости от группы пациентов")
+```
+
+-   Используя метод пермутаций проверим отличаются ли группы в зависимомти от Health_state
+
+```{r permanova}
+
+adonis2(d ~ Health_state_n, data = df_full)
+
+```
 
 ## Тест Манна-Уитни для сравнения каждого таксона между больными и здоровыми
 
@@ -941,4 +971,3 @@ perform_permutation_test(combined_bacteria_clean, "_O")
 ```{r}
 perform_permutation_test(combined_bacteria_clean, "_P")
 ```
-
