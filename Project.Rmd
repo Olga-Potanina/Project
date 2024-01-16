@@ -583,9 +583,6 @@ Wilcox_comparison_round_2 <- data_wide %>%
 #### Гистограмма по количеству пациентов (Здоров - СРК)
 
 
-```{r Genus bar plot by Health_state}
-
-
 ```{r}
 create_and_plot_taxon_groups <- function(filter_pattern, step_size, dataset_name) {
   
@@ -779,8 +776,6 @@ create_and_plot_boxplots(G_long, "_G", 4, "Health_state", "Боксплоты д
 
 ### Боксплот по возросту и полу
 
-# Создаем набор данных с ограничением на первые 10 таксонов с разными Health_state
-
 ```{r}
 create_and_plot_boxplots(G_long, "_G", 3, "interaction(Health_state, Sex)", "Боксплоты для таксона (Пол + статус заболевания)")
 ```
@@ -914,6 +909,47 @@ create_and_plot_boxplots(O_long, "_O", 3, "interaction(Health_state, Smoking)", 
 ```{r}
 create_and_plot_boxplots(O_long, "_O", 3, "interaction(Health_state, Alcohol)", "Боксплоты для таксона (Статус употребления алкоголя + статус заболевания)")
 ```
+
+
+## Распределения таксонов P - Phylum (тип)
+
+#### Гистограмма по количеству пациентов (Здоров - СРК)
+
+```{r}
+create_and_plot_taxon_groups("_P", 18, "P_long")
+```
+
+### Круговая столбчатая диаграмма для отобрадения отношения здоровых пациентов и пациентов с СРК
+
+```{r}
+create_and_plot_circular_diagrams(P_long, "_P", 30, "P_output_plot")
+```
+
+#### Боксплот по возрасту
+
+```{r}
+create_and_plot_boxplots(P_long, "_P", 4, "Health_state", "Боксплоты для таксонов по статусу: Здоров/СРК")
+```
+
+
+### Боксплот по возросту и полу
+
+```{r}
+create_and_plot_boxplots(P_long, "_P", 3, "interaction(Health_state, Sex)", "Боксплоты для таксона (Пол + статус заболевания)")
+```
+
+### Боксплот по возросту и статусу курения
+
+```{r}
+create_and_plot_boxplots(P_long, "_P", 3, "interaction(Health_state, Smoking)", "Боксплоты для таксона (Статус курения + статус заболевания)")
+```
+
+### Боксплот по возросту и статусу употребления алкоголя
+
+```{r}
+create_and_plot_boxplots(P_long, "_P", 3, "interaction(Health_state, Alcohol)", "Боксплоты для таксона (Статус употребления алкоголя + статус заболевания)")
+```
+
 
 ## Посмотрим на данные здоровых людей и людей с СРК как на многомерный вектор по всем таксонам и группам
 
