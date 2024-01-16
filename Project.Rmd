@@ -583,6 +583,9 @@ Wilcox_comparison_round_2 <- data_wide %>%
 #### Гистограмма по количеству пациентов (Здоров - СРК)
 
 
+```{r Genus bar plot by Health_state}
+
+
 ```{r}
 create_and_plot_taxon_groups <- function(filter_pattern, step_size, dataset_name) {
   
@@ -775,6 +778,8 @@ create_and_plot_boxplots(G_long, "_G", 4, "Health_state", "Боксплоты д
 ```
 
 ### Боксплот по возросту и полу
+
+# Создаем набор данных с ограничением на первые 10 таксонов с разными Health_state
 
 ```{r}
 create_and_plot_boxplots(G_long, "_G", 3, "interaction(Health_state, Sex)", "Боксплоты для таксона (Пол + статус заболевания)")
