@@ -1012,3 +1012,117 @@ perform_permutation_test(combined_bacteria_clean, "_O")
 ```{r}
 perform_permutation_test(combined_bacteria_clean, "_P")
 ```
+## Кластеризация родов (G-таксонов)
+
+### AGNES (agglomerative clustering)
+
+```{r, warning=FALSE}
+
+clusters_number <- 2 #количество кластеров
+
+library(cluster)
+library(factoextra)
+
+G_scaled <- data_wide %>% 
+  column_to_rownames("patient_ID") %>% 
+  select (ends_with("_G")) %>% #выбираем только G-таксоны
+  scale () #нормируем данные
+
+agnes <- G_scaled %>% 
+  dist (method = "euclidean") %>% #cоздаём матрицу дистанций
+  as.matrix() %>%  
+  agnes( #выбираем Agglomerative clustering (иерархическая кластеризация снизу вверх)
+    stand = F, #стандартизируем данныe
+    metric = "euclidean", 
+    method = "ward")
+
+fviz_dend(agnes, 
+          cex = 0.5, k = clusters_number,
+          rect = TRUE,
+          k_colors = "jco",
+          show_labels = FALSE,
+          main = "Дендрограмма кластеризации субъектов по количеству G-таксонов",
+  ylab = "Высота",)
+
+```
+
+- Сравнение полученных кластеров по основным переменным
+
+```{r, message=FALSE}
+
+data_wide %>% 
+  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% # Создаём новый столбец - вектор принадлежности к кластерам  
+  select(2:19, Cluster) %>% 
+  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
+                            all_categorical() ~ c(0, 0)),
+              by = Cluster) %>% 
+  add_p()
+
+```
+
+### 
+
+### kMeans
+
+```{r}
+
+G_scaled %>% 
+  kmeans(centers = clusters_number, # Кол-во центроидов-кластеров
+         iter.max = 20, # Максимальное кол-во итераций
+         nstart = 35) %>% # Кол-во центройдов в начале
+  fviz_cluster(data = G_scaled,
+               palette = c("#2E9FDF", "#E7B800"),
+               ellipse = FALSE,
+               show.clust.cent = FALSE,
+               geom = "point",
+               main = "Кластеризация субъектов по G-таксонам")
+
+```
+
+### Определение оптимального количества кластеров 
+
+- методом локтя
+
+```{r}
+
+G_scaled %>% 
+fviz_nbclust(hcut, method = "wss") 
+
+```
+
+- с помощью коэффициента силуэта 
+
+```{r}
+
+G_scaled %>% 
+  fviz_nbclust(hcut, method = "silhouette") 
+```
+
+### DBSCAN
+
+- определением оптимального размера радиуса (eps) 
+
+```{r}
+
+dbscan::kNNdistplot(G_scaled,
+                    minPts = 20)  # мин. количество субъектов в кластере
+abline(h=37, col = "red", lty = 2)
+
+```
+
+
+```{r}
+
+G_scaled %>% 
+dbscan::dbscan(eps = 37, # радиус
+       minPts = 20) %>%  # мин. количество субъектов в кластере
+  fviz_cluster(
+    data = G_scaled, 
+    stand = TRUE,
+    ellipse = FALSE, 
+    show.clust.cent = FALSE,
+    geom = "point", 
+    palette = "jco", 
+    ggtheme = theme_classic())
+
+```
