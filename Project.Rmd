@@ -15,6 +15,8 @@ library(broom)
 library (flextable)
 ```
 
+# Предобработка данных
+
 ## Чтение, слияние, редактирование исходных датасетов
 
 -   Загрузка датасетов с информацией о здоровых людях (`info_healthy`) и пациентах с СРК (`info_ibs`)
@@ -276,9 +278,11 @@ rm (percentage_non_zero_non_na, result_df_sort)
 
 ```
 
+
 -   Сохранение `data_wide` после удаления колонок и строк с процентом NA/0 более threshold_percent
 
 ```{r}
+
 data_wide <- data_wide %>% 
   select (patient_ID, any_of (colnames(combined_info)), everything()) %>% 
   arrange(patient_ID)
@@ -287,6 +291,191 @@ write_rds(data_wide,
           file = "data/originals/data_wide.rds")
 
 ```
+
+## Поиск "таксонов одного исследования"
+
+### Среднее содержание G_таксонов, которые были обнаружены только в одном исследовании
+
+```{r}
+
+G_only_one <- data_wide %>% 
+  select (research_ID, ends_with("_G")) %>%
+  add_column(n = 1) %>% #колонка для дальнейшего подсчёта количества субъектов в исследовании
+  group_by(research_ID) %>% 
+  summarise_each (sum) %>% 
+  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #выбираем таксоны, которые обнаружены только в одном исследовании 
+  mutate (across(-c(1:2),
+                 function(x) x/n))
+
+G_only_one
+
+```
+ 
+- Определение процента людей, у которых данные таксоны не обнаружены () 
+
+```{r}
+
+G_taxon <- 'Ellin517_G'
+res_ID <- 7
+
+data_wide %>% 
+  select (research_ID, G_taxon) %>%
+  filter (research_ID == res_ID) %>% 
+  summarise(across (-1,
+              function (x) sum (x==0)/nrow (.) * 100)) %>% 
+  rename ("Taxon_zero_percentage, %" = G_taxon) 
+
+# CM1G08_G - 73,6% нулей
+# Cladosporium_G - 94,0% нулей
+# Lentimonas_G - 94,0% нулей
+# Micromonospora_G - 93,2% нулей
+# Pseudosphingobacterium_G - 93,2% нулей 
+# Schizothrix LEGE 07164_G - 92,7% нулей 
+# Talaromyces_G - 92,7% нулей 
+# Rs-D38 termite group_G - 91,9% нулей 
+# Kabatiella_G - 90,6% нулей 
+# Anaerolineaceae UCG-001_G - 89,5% нулей 
+# Iamia_G - 88,2% нулей 
+# Thiohalocapsa_G - 87,9% нулей 
+# Ellin517_G - 75,1% нулей 
+
+rm (G_taxon, res_ID)
+```
+
+### Среднее содержание F_таксонов, которые были обнаружены только в одном исследовании
+
+```{r}
+
+data_wide %>% 
+  select (research_ID, ends_with("_F")) %>%
+  add_column(n = 1) %>% #колонка для дальнейшего подсчёта количества субъектов в исследовании
+  group_by(research_ID) %>% 
+  summarise_each (sum) %>% 
+  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #выбираем таксоны, которые обнаружены только в одном исследовании 
+  mutate (across(-c(1:2),
+                 function(x) x/n))
+  
+```
+
+- Определение процента людей, у которых данные таксоны не обнаружены () 
+
+```{r}
+
+F_taxon <- 'Iamiaceae_F'
+res_ID <- 1
+
+data_wide %>% 
+  select (research_ID, F_taxon) %>%
+  filter (research_ID == res_ID) %>% 
+  summarise(across (-1,
+              function (x) sum (x==0)/nrow (.) * 100)) %>% 
+  rename ("Taxon_zero_percentage, %" = F_taxon) 
+
+# Didymellaceae_F - 44,4% нулей
+# Cladosporiaceae_F - 36,1% нулей
+# Trichocomaceae_F - 22,2% нулей
+# type III_F - 30,4% нулей
+# 09D2Z48_F - 23,9% нулей
+# Aureobasidiaceae_F - 0% нулей 
+# Iamiaceae_F - 2,2% нулей
+
+rm (F_taxon, res_ID)
+
+```
+
+### Среднее содержание O_таксонов, которые были обнаружены только в одном исследовании
+
+```{r}
+
+data_wide %>% 
+  select (research_ID, ends_with("_O")) %>%
+  add_column(n = 1) %>% #колонка для дальнейшего подсчёта количества субъектов в исследовании
+  group_by(research_ID) %>% 
+  summarise_each (sum) %>% 
+  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #выбираем таксоны, которые обнаружены только в одном исследовании 
+  mutate (across(-c(1:2),
+                 function(x) x/n))
+  
+```
+
+- Определение процента людей, у которых данные таксоны не обнаружены () 
+
+```{r}
+
+O_taxon <- 'Candidatus Abawacabacteria_O'
+res_ID <- 1
+
+data_wide %>% 
+  select (research_ID, O_taxon) %>%
+  filter (research_ID == res_ID) %>% 
+  summarise(across (-1,
+              function (x) sum (x==0)/nrow (.) * 100)) %>% 
+  rename ("Taxon_zero_percentage, %" = O_taxon) 
+
+# Hypocreales_O - 41,7% нулей
+# Pleosporales_O - 41,7% нулей
+# Candidatus Abawacabacteria_O - 52,2% нулей
+# Candidatus Peregrinibacteria_O - 52,2% нулей
+# Capnodiales_O - 33,3% нулей
+# Candidatus Terrybacteria_O - 39,1% нулей
+# Eurotiales_O - 39,1% нулей
+# Dothideales_O - 0% нулей
+# eub62A3_O - 15,2% нулей
+# LD1-PA32_O - 2,2% нулей
+
+rm (O_taxon, res_ID)
+
+```
+
+### Среднее содержание C_таксонов, которые были обнаружены только в одном исследовании
+
+```{r}
+
+data_wide %>% 
+  select (research_ID, ends_with("_C")) %>%
+  add_column(n = 1) %>% #колонка для дальнейшего подсчёта количества субъектов в исследовании
+  group_by(research_ID) %>% 
+  summarise_each (sum) %>% 
+  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #выбираем таксоны, которые обнаружены только в одном исследовании 
+  mutate (across(-c(1:2),
+                 function(x) x/n))
+  
+```
+
+- Определение процента людей, у которых данные таксоны не обнаружены () 
+
+```{r, warning=FALSE}
+
+С_taxon <- 'Dothideomycetes_C'
+res_ID <- 2
+
+data_wide %>% 
+  select (research_ID, С_taxon) %>%
+  filter (research_ID == res_ID) %>% 
+  summarise(across (-1,
+              function (x) sum (x==0)/nrow (.) * 100)) %>% 
+  rename ("Taxon_zero_percentage, %" = С_taxon) 
+
+# WWE3_C - 74,4% нулей
+# Eurotiomycetes_C - 19,4% нулей 
+# Dothideomycetes_C - 0% нулей 
+
+rm (С_taxon, res_ID)
+
+```
+### Среднее содержание P_таксонов, которые были обнаружены только в одном исследовании
+
+**P_таксонов, которые были обнаружены только в одном исследовании, нет**
+
+### data_wide финальный
+`
+```{r}
+
+data_wide <- data_wide %>% 
+  select (!colnames (G_only_one) [- c (1,2)]) #удаление G_таксонов, которые обнаружены только в одном исследовании (все они в этом исследовании встречались редко - до 25% людей) 
+
+```
+
 
 ### bac_functions
 
@@ -377,6 +566,8 @@ write_rds(P_long,
           file = "data/originals/P_long.rds", "gz") 
 
 ```
+
+# Анализ
 
 ## Факторный анализ
 
