@@ -768,7 +768,105 @@ Wilcox_comparison_round_2 <- data_wide %>%
  )
  
 ```
+## GLM метод для нулей
 
+```{r labels for Tweedie GLM model, message=FALSE}
+
+library("haven")
+library("ResourceSelection")  ## Package to perform the Hosmer-Lemeshow GOF test
+library("survey")
+library("prediction")
+library("margins")
+library("ggeffects")
+library("sjPlot")
+library("statmod")
+#devtools::install_github("strengejacke/strengejacke")
+#install.packages(c("haven", "ResourceSelection", "survey", "prediction", "margins", "ggeffects", "sjPlot", "statmod"))
+
+```
+
+## G - Genus (Род)
+```{r}
+
+analyze_taxon <- function(taxon_name, data) {
+  tryCatch(
+    {
+      data_filtered <- data %>%
+        filter(Taxon == taxon_name) %>%
+        select(patient_ID, Health_state, Percentage, Age_range, research_ID) %>%
+        mutate(Health_state_num = ifelse(Health_state == "Health", 0, 1)) # для упрацения интерпритации процентов
+      
+      mepsdsgn = svydesign(
+        id = ~patient_ID,
+        strata = ~research_ID,
+        weights = NULL,
+        data = data_filtered,
+        nest = TRUE)
+      
+      start_values <- c(0, 0, 1)
+      
+      model <- svyglm(Percentage ~ Health_state_num + research_ID,
+                      mepsdsgn,
+                      family = tweedie(var.power = 2, link.power = 1),
+                      start = start_values)
+      
+      summary_table <- summary(model)
+      
+      tidy_output <- tidy(model)
+      
+      result_table1 <- tidy_output %>%
+        filter(term == "Health_state_num") %>%
+        select(estimate, p.value)
+      
+      result_table2 <- as.data.frame(confint(model)["Health_state_num", ])
+      
+      result_table2_transposed <- t(result_table2)
+      
+      final_result_table_transposed <- bind_cols(result_table1, result_table2_transposed) %>%
+        select(estimate, `2.5 %`, `97.5 %`, p.value)
+      
+      final_result_table_transposed$Taxon <- taxon_name
+      
+      return(final_result_table_transposed)
+    },
+    error = function(e) {
+      # Обработка ошибки (можно добавить сообщение или просто вернуть NULL)
+      cat("Error in analyze_taxon for Taxon:", taxon_name, "\n")
+      return(NULL)
+    }
+  )
+}
+
+# Применение функции ко всем таксонам
+unique_taxa <- unique(G_long$Taxon)
+
+result_list <- lapply(unique_taxa, function(taxon) {
+  analyze_result <- analyze_taxon(taxon, G_long)
+  if (!is.null(analyze_result)) {
+    return(analyze_result)
+  } else {
+    return(data.frame())  # Вернуть пустой data.frame, чтобы не влиять на bind_rows
+  }
+})
+
+# Объединение результатов в один dataframe
+final_result_df <- bind_rows(result_list) %>%
+  mutate(estimate = round(estimate, 3),
+         `2.5 %` = round(`2.5 %`, 4),
+         `97.5 %` = round(`97.5 %`, 4)
+         )
+
+# Коррекция на множественные сравнения по методу Холма
+final_result_df$p.adjusted <- p.adjust(final_result_df$p.value, method = "holm")
+
+# Фильтрация только статистически значимых результатов
+significant_results_G <- final_result_df %>%
+  filter(p.adjusted < 0.05)
+
+# Вывод статистически значимых результатов
+cat("Статистически значимые результаты:\n")
+significant_results_G
+```
 ## Распределения таксонов G(Genus - Род)
 
 #### Гистограмма по количеству пациентов (Здоров - СРК)
