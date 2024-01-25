@@ -279,16 +279,13 @@ rm (percentage_non_zero_non_na, result_df_sort)
 ```
 
 
--   Сохранение `data_wide` после удаления колонок и строк с процентом NA/0 более threshold_percent
+-   Удалениe из `data_wide` колонок и строк с процентом NA/0 более threshold_percent 
 
 ```{r}
 
 data_wide <- data_wide %>% 
   select (patient_ID, any_of (colnames(combined_info)), everything()) %>% 
   arrange(patient_ID)
-
-write_rds(data_wide, 
-          file = "data/originals/data_wide.rds")
 
 ```
 
@@ -473,6 +470,9 @@ rm (С_taxon, res_ID)
 
 data_wide <- data_wide %>% 
   select (!colnames (G_only_one) [- c (1,2)]) #удаление G_таксонов, которые обнаружены только в одном исследовании (все они в этом исследовании встречались редко - до 25% людей) 
+
+write_rds(data_wide, 
+          file = "data/originals/data_wide.rds")
 
 ```
 
@@ -665,7 +665,7 @@ print(result_dataset_pass)
 
 -   Посмотрим на данные здоровых людей и людей с СРК как на многомерный вектор по всем таксонам и группам
 
-```{r}
+```{r, warning=FALSE}
 
 combined_bacteria_G <- combined_bacteria_clean %>%
   select(Health_state, ends_with("_G"))
@@ -783,6 +783,11 @@ library("statmod")
 #devtools::install_github("strengejacke/strengejacke")
 #install.packages(c("haven", "ResourceSelection", "survey", "prediction", "margins", "ggeffects", "sjPlot", "statmod"))
 
+```
+
+```{r}
+options(survey.lonely.psu = 'adjust')
+start_values <- c(0, 0, 1)
 ```
 
 ## G - Genus (Род)
