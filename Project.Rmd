@@ -1449,7 +1449,7 @@ start_values <- c(0, 0, 1)
 ```
 
 ## G - Genus (Род)
-```{r}
+```{r warning=FALSE}
 
 analyze_taxon <- function(taxon_name, data) {
   tryCatch(
@@ -1494,7 +1494,7 @@ analyze_taxon <- function(taxon_name, data) {
     },
     error = function(e) {
       # Обработка ошибки (можно добавить сообщение или просто вернуть NULL)
-      cat("Error in analyze_taxon for Taxon:", taxon_name, "\n")
+      # cat("Error in analyze_taxon for Taxon:", taxon_name, "\n")
       return(NULL)
     }
   )
@@ -1520,15 +1520,25 @@ final_result_df <- bind_rows(result_list) %>%
          )
 
 # Коррекция на множественные сравнения по методу Холма
-final_result_df$p.adjusted <- p.adjust(final_result_df$p.value, method = "holm")
+final_result_df$p.adjusted <- round(p.adjust(final_result_df$p.value, method = "holm"),3)
 
 # Фильтрация только статистически значимых результатов
 significant_results_G <- final_result_df %>%
   filter(p.adjusted < 0.05)
 
-# Вывод статистически значимых результатов
+ #install.packages("knitr")
+ #install.packages("kableExtra")
+
+# Загрузка библиотек
+library(knitr)
+library(kableExtra)
+
+# Ваш код
+
+# Вывод таблички
 cat("Статистически значимые результаты:\n")
-significant_results_G
+kable(significant_results_G, "html") %>%
+  kable_styling(full_width = F)
 ```
 ## Распределения таксонов G(Genus - Род)
 
