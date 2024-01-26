@@ -190,6 +190,8 @@ data_wide <- combined_info %>%
 
 ```
 
+ 
+
 ## Оценка доли NA и нулевых значений
 
 -   Оценка доли NA в переменных `data_wide`
@@ -289,6 +291,8 @@ data_wide <- data_wide %>%
 
 ```
 
+ 
+
 ## Поиск "таксонов одного исследования"
 
 ### Среднее содержание G_таксонов, которые были обнаружены только в одном исследовании
@@ -310,7 +314,7 @@ G_only_one
  
 - Определение процента людей, у которых данные таксоны не обнаружены () 
 
-```{r}
+```{r, include=FALSE}
 
 G_taxon <- 'Ellin517_G'
 res_ID <- 7
@@ -356,7 +360,7 @@ data_wide %>%
 
 - Определение процента людей, у которых данные таксоны не обнаружены () 
 
-```{r}
+```{r, include=FALSE}
 
 F_taxon <- 'Iamiaceae_F'
 res_ID <- 1
@@ -397,7 +401,7 @@ data_wide %>%
 
 - Определение процента людей, у которых данные таксоны не обнаружены () 
 
-```{r}
+```{r, include=FALSE}
 
 O_taxon <- 'Candidatus Abawacabacteria_O'
 res_ID <- 1
@@ -441,7 +445,7 @@ data_wide %>%
 
 - Определение процента людей, у которых данные таксоны не обнаружены () 
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 
 С_taxon <- 'Dothideomycetes_C'
 res_ID <- 2
@@ -464,15 +468,19 @@ rm (С_taxon, res_ID)
 
 **P_таксонов, которые были обнаружены только в одном исследовании, нет**
 
-### data_wide финальный
+ 
+ 
+## data_wide (not batched)
 `
 ```{r}
 
 data_wide <- data_wide %>% 
-  select (!colnames (G_only_one) [- c (1,2)]) #удаление G_таксонов, которые обнаружены только в одном исследовании (все они в этом исследовании встречались редко - до 25% людей) 
+  select (!colnames (G_only_one) [- c (1,2)]) #удаление G_таксонов, которые обнаружены только в одном исследовании (все они в этом исследовании встречались редко - до 25% людей)
+
+data_wide_not_batched <- data_wide  
 
 write_rds(data_wide, 
-          file = "data/originals/data_wide.rds")
+          file = "data/originals/data_wide_not_batched.rds")
 
 ```
 
@@ -1114,7 +1122,20 @@ data_wide %>%
 
 ```
 
-### bac_functions
+
+## data_wide (batched)
+`
+```{r}
+
+
+data_wide <- data_wide_batched  
+
+write_rds(data_wide, 
+          file = "data/originals/data_wide.rds")
+
+```
+
+## bac_functions
 
 -   загрузка и редактирование `bac_functions`
 
@@ -1158,7 +1179,7 @@ bac_functions <- read_xlsx (path, 1) %>% #Патогены и нежелател
 rm (path, taxon, neuromediators, probiotics, special_properties, vitamins, habbits)
 ```
 
-### data_long
+## data_long
 
 -   Перевод `data_wide` в длинный формат (`data_long`), объединение `data_long` и `bac_functions`
 

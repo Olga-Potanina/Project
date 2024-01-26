@@ -1462,46 +1462,54 @@ grouping/batches and sample clustering.</p>
 <div id="covariates" class="section level2">
 <h2>Covariates</h2>
 <p>A summary of the data-sets covariate information.</p>
-<pre><code>     sID            research_ID Seq_region     Seq_date     Health_state      Age       
- Length:381         1:46        V3-V4:106   Min.   :2015   Disease:170   Min.   :19.00  
- Class :character   2:36        V4   :229   1st Qu.:2017   Health :211   1st Qu.:27.25  
- Mode  :character   3:70        V5-V6: 46   Median :2018                 Median :34.00  
-                    4:87                    Mean   :2019                 Mean   :38.71  
-                    5:25                    3rd Qu.:2021                 3rd Qu.:47.00  
-                    6:22                    Max.   :2023                 Max.   :76.00  
-                    7:95                                                 NA&#39;s   :247    
- Age_range       Sex         Country                          Race     Smoking   
- &gt; 43 : 44   female: 79   Spain  :95   African American         :  1   No  :187  
- 16-43:242   male  :112   Poland :70   Asian or Pacific Islander:  1   Yes : 16  
- NA&#39;s : 95   NA&#39;s  :190   Belgium:46   Caucasian                :116   NA&#39;s:178  
-                          Germany:45   Hispanic                 :  1             
-                          Italy  :37   Other                    : 11             
-                          Austria:28   NA&#39;s                     :251             
-                          (Other):60                                             
-                          Alcohol            Antibiotics_usage Physical_activity  Travel_period
- Never                        : 12   1-6 months       : 48     No  :187          3 months: 18  
- Occasionally (1-2 times/week): 24   12 months/Not use:129     Yes : 16          6 months: 10  
- Rarely (a few times/month)   : 36   NA&#39;s             :204     NA&#39;s:178          Month   : 13  
- Regularly (3-7 times/week)   : 15                                               Year    : 45  
- NA&#39;s                         :294                                               NA&#39;s    :295  
-                                                                                               
-                                                                                               
-         Education_level                              Cosmetics     Sleep_duration
- Bachelor&#39;s level: 31    Never                             : 44   &gt; 8 hours:  9   
- Master&#39;s level  : 28    Occasionally (a few-8 times/month): 17   4-6 hours:  9   
- School Level    : 25    Regularly (3-7 times/week)        : 25   6-7 hours: 31   
- NA&#39;s            :297    NA&#39;s                              :295   7-8 hours: 38   
-                                                                  NA&#39;s     :294   
-                                                                                  
-                                                                                  
-            BMI_category
- normal/overweight:287  
- obese            :  5  
- underweight      :  1  
- NA&#39;s             : 88  
-                        
-                        
-                        </code></pre>
+<pre><code>     sID            research_ID Seq_region     Seq_date     Health_state
+ Length:381         1:46        V3-V4:106   Min.   :2015   Disease:170  
+ Class :character   2:36        V4   :229   1st Qu.:2017   Health :211  
+ Mode  :character   3:70        V5-V6: 46   Median :2018                
+                    4:87                    Mean   :2019                
+                    5:25                    3rd Qu.:2021                
+                    6:22                    Max.   :2023                
+                    7:95                                                
+      Age        Age_range       Sex         Country  
+ Min.   :19.00   &gt; 43 : 44   female: 79   Spain  :95  
+ 1st Qu.:27.25   16-43:242   male  :112   Poland :70  
+ Median :34.00   NA&#39;s : 95   NA&#39;s  :190   Belgium:46  
+ Mean   :38.71                            Germany:45  
+ 3rd Qu.:47.00                            Italy  :37  
+ Max.   :76.00                            Austria:28  
+ NA&#39;s   :247                              (Other):60  
+                        Race     Smoking                             Alcohol   
+ African American         :  1   No  :187   Never                        : 12  
+ Asian or Pacific Islander:  1   Yes : 16   Occasionally (1-2 times/week): 24  
+ Caucasian                :116   NA&#39;s:178   Rarely (a few times/month)   : 36  
+ Hispanic                 :  1              Regularly (3-7 times/week)   : 15  
+ Other                    : 11              NA&#39;s                         :294  
+ NA&#39;s                     :251                                                 
+                                                                               
+         Antibiotics_usage Physical_activity  Travel_period
+ 1-6 months       : 48     No  :187          3 months: 18  
+ 12 months/Not use:129     Yes : 16          6 months: 10  
+ NA&#39;s             :204     NA&#39;s:178          Month   : 13  
+                                             Year    : 45  
+                                             NA&#39;s    :295  
+                                                           
+                                                           
+         Education_level                              Cosmetics  
+ Bachelor&#39;s level: 31    Never                             : 44  
+ Master&#39;s level  : 28    Occasionally (a few-8 times/month): 17  
+ School Level    : 25    Regularly (3-7 times/week)        : 25  
+ NA&#39;s            :297    NA&#39;s                              :295  
+                                                                 
+                                                                 
+                                                                 
+   Sleep_duration            BMI_category
+ &gt; 8 hours:  9    normal/overweight:287  
+ 4-6 hours:  9    obese            :  5  
+ 6-7 hours: 31    underweight      :  1  
+ 7-8 hours: 38    NA&#39;s             : 88  
+ NA&#39;s     :294                           
+                                         
+                                         </code></pre>
 </div>
 <div id="sample-distribution" class="section level2">
 <h2>Sample Distribution</h2>
