@@ -1964,3 +1964,138 @@ perform_permutation_test(combined_bacteria_clean, "_O")
 ```{r}
 perform_permutation_test(combined_bacteria_clean, "_P")
 ```
+
+
+
+
+
+
+
+### Влияние серотонинпродуцирующих бактерий
+```{r}
+library("lme4")
+library("stringr")
+
+
+#Переменная имеет биномиальное распределение
+plot(data_long$Серотонин)
+
+#Процент пропущенных значений в переменной Серотонин 96,67%
+na_serotonin <- sum(is.na(data_long$Серотонин)) / nrow(data_long) * 100
+
+
+#Данные о серотонине есть только в F и G taxons
+serotonin_taxons <- data_long %>%
+  filter(!is.na(`Серотонин`)) %>%
+  mutate(Serotonin_taxons = str_sub(Taxon, -2)) %>%
+  distinct(Serotonin_taxons) %>%
+  pull(Serotonin_taxons)
+
+#При этом только 2 F таксона и 42 G таксона
+serotonin_taxons_count_unique <- bac_functions %>%
+  filter(!is.na(Серотонин)) %>%
+  mutate(Serotonin_taxons = str_sub(Taxon, -2)) %>%
+  count(Serotonin_taxons)
+
+#А всего 219 F в датасете
+num_unique_F <- data_long %>%
+  filter(str_detect(Taxon, "_F$")) %>%
+  summarise(Num_Unique = n_distinct(Taxon)) %>%
+  pull(Num_Unique)
+
+```
+###Добавляем данные по родам из двух семейств в bac_functions (данные добавлены в 8-й лист Bacterial group functions.xlsx)
+
+```{r}
+
+# Чтение листов Excel-файла с функциями бактерий и их объединение
+path <- "data/raw/Bacterial group functions.xlsx"
+taxon <- c ("TaxonName", "Rank")
+
+neuromediators_1 <- read_xlsx (path, 8) %>% 
+  mutate(Destroy = ifelse(is.na (Destroy), "produce", "destroy")) %>% 
+  unique() %>%
+  pivot_wider(names_from = Neuromediator, values_from = Destroy)
+
+probiotics <- read_xlsx (path, 3) %>% 
+  add_column(probiotics = 1)
+
+special_properties <- read_xlsx (path, 4) %>% 
+  add_column(special_properties = 1)
+
+vitamins <- read_xlsx (path, 5) %>% 
+  pivot_wider (names_from = Vitamin, values_from = Vitamin,
+               values_fn = function(x) ifelse(is.na (x), NA, 1))
+
+habbits <- read_xlsx (path, 7) %>%
+  unique() %>% #удаление повторяющихся строк 
+  pivot_wider(names_from = Habbit, values_from = Habit_state)
+
+bac_functions_1 <- read_xlsx (path, 1) %>% #Патогены и нежелательные
+  full_join(neuromediators_1, by = taxon) %>% #Нейромедиаторы
+  full_join(probiotics, by = taxon) %>% #Пробиотики
+  full_join(special_properties, by = taxon) %>% #С особыми свойствами
+  full_join(vitamins, by = taxon) %>%  #Витамины
+  full_join(read_xlsx (path, 6), by = taxon) %>% #Продуценты КЦДК
+  full_join(habbits, by = taxon) %>% #Вредные привычки
+  
+  unite("Taxon", TaxonName, Rank, sep = "_") %>% 
+  filter (Taxon != "Blautia obeum_S") %>% #для данного таксона противоречивая информация в Продуценты КЦЖК
+  mutate_all(as.factor)
+
+rm (path, taxon, neuromediators_1, probiotics, special_properties, vitamins, habbits)
+
+
+data_long_1 <- data_wide %>% 
+  pivot_longer(ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")),
+               names_to = "Taxon", values_to = "Percentage")
+
+#Перезапись data_long с добавлением функций бактерий
+data_long_1 <- data_long_1 %>% 
+  left_join (bac_functions_1, by = "Taxon")
+
+
+G_long_1 <- data_long_1 %>% subset(grepl("_G", Taxon)) 
+
+```
+
+
+
+
+#Модель отдельно для таксонов G уровня
+```{r}
+G_long_serotonin <- G_long_1 %>%
+  filter( ! is.na(`Серотонин`)) %>%
+  filter(Percentage > 0.0000)
+
+G_long_serotonin$`Серотонин` <- relevel(G_long_serotonin$`Серотонин`, ref = "destroy")
+
+G_long_serotonin$research_ID <- as.factor(G_long_serotonin$research_ID)
+G_long_serotonin$Seq_date <- as.factor(G_long_serotonin$Seq_date)
+G_long_serotonin$Seq_date <- as.factor(G_long_serotonin$Seq_date)
+G_long_serotonin$patient_ID <- as.factor(G_long_serotonin$patient_ID)
+
+
+
+model_ser_G_1 <- glmer(Health_state ~ Серотонин +  (1 | research_ID) + (1 | patient_ID), data = G_long_serotonin, family = binomial)
+summary(model_ser_G_1)
+
+model_ser_G_2 <- glmer(Health_state ~ Серотонин +  (1 | Seq_date) + (1 | patient_ID), data = G_long_serotonin, family = binomial)
+summary(model_ser_G_2)
+
+anova(model_ser_G_1, model_ser_G_2)
+
+
+
+G_long_serotonin_2 <- G_long_1 %>%
+  filter(Percentage > 0.0000) %>%
+  filter(`Серотонин` == "produce")
+
+
+model_ser_G_3 <- glmer(Health_state ~ Percentage +  (1 | Seq_date) + (1 | patient_ID), data = G_long_serotonin_2, family = binomial)
+summary(model_ser_G_3)
+
+```
+
+Ни одна из mixed models не показывает значимой ассоциации наличия серотонинпродуцирующих бактерий и состоянием здоровья человека (СРК/здоровый).
+
