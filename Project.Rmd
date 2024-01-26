@@ -476,6 +476,643 @@ write_rds(data_wide,
 
 ```
 
+# Кластеризация
+
+## Кластеризация родов (G-таксонов)
+
+### AGNES (agglomerative clustering)
+
+```{r, warning=FALSE, message=FALSE}
+
+clusters_number <- 4 #количество кластеров
+
+library(cluster)
+library(factoextra)
+
+G_scaled <- data_wide %>% 
+  mutate(patient_ID = paste0("patient_", patient_ID)) %>% 
+  column_to_rownames("patient_ID") %>% 
+  select (ends_with("_G")) %>% #выбираем только G-таксоны
+  scale () #нормируем данные
+
+agnes <- G_scaled %>% 
+  dist (method = "euclidean") %>% #cоздаём матрицу дистанций
+  as.matrix() %>%  
+  agnes( #выбираем Agglomerative clustering (иерархическая кластеризация снизу вверх)
+    diss = TRUE, #на вход подана dissimilarity matrix
+    method = "ward")
+
+fviz_dend(agnes,
+          k = clusters_number,
+          rect = TRUE,
+          k_colors = "jco",
+          show_labels = TRUE,
+          label_cols = ifelse (data_wide[agnes$order,]$Health_state == "Health", "green", "red"),#цвет лейблов определяется по Health_state
+          cex = 0.2, #размер шрифта лейблов
+          main = "Дендрограмма кластеризации субъектов по количеству G-таксонов",
+          ylab = "Высота")
+
+```
+
+-   Сравнение полученных кластеров по основным переменным
+
+```{r, warning=FALSE, message=FALSE}
+
+data_wide %>% 
+  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% # Создаём новый столбец - вектор принадлежности к кластерам  
+  select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
+  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
+                            all_categorical() ~ c(0, 0)),
+              by = Cluster) %>% 
+  add_p()
+
+```
+
+### kMeans
+
+```{r}
+
+kmeans <- G_scaled %>% 
+  kmeans(centers = clusters_number, # Кол-во кластеров
+         iter.max = 20, # Максимальное кол-во итераций
+         nstart = 35) # Кол-во центройдов в начале
+
+  fviz_cluster(kmeans,data = G_scaled,
+               ellipse = FALSE,
+               show.clust.cent = FALSE,
+               geom = "point",
+               main = "Кластеризация субъектов по содержанию G-таксонов до batch-коррекции")
+
+```
+
+### Определение оптимального количества кластеров
+
+-   методом локтя
+
+```{r}
+
+G_scaled %>% 
+fviz_nbclust(FUN = hcut, method = "wss") 
+
+```
+
+-   с помощью коэффициента силуэта
+
+```{r}
+
+G_scaled %>% 
+  fviz_nbclust(FUN = hcut, method = "silhouette") 
+
+```
+
+### DBSCAN
+
+-   определением оптимального размера радиуса (eps)
+
+```{r}
+
+G_scaled %>% 
+dbscan::kNNdistplot(minPts = 20)  # мин. количество субъектов в кластере
+
+abline(h=37, col = "red", lty = 2)
+
+```
+
+```{r}
+
+G_scaled %>%
+dbscan::dbscan(eps = 37, # радиус
+       minPts = 20) %>%  # мин. количество субъектов в кластере
+  fviz_cluster(
+    data = G_scaled, 
+    stand = TRUE,
+    ellipse = FALSE, 
+    show.clust.cent = FALSE,
+    geom = "point", 
+    palette = "jco", 
+    ggtheme = theme_classic())
+
+```
+
+### AGNES (несходство Брея - Кертиса)
+
+-   с матрицей-дистанций с показателями несходства Брея --- Кертиса
+
+```{r, message=FALSE, warning=FALSE}
+
+agnes2 <- data_wide %>% 
+  column_to_rownames("patient_ID") %>% 
+  select (ends_with("_G")) %>% 
+  vegdist(method = "bray") %>% #cоздаём матрицу дистанций, рассчитывая показатель несходства Брея — Кертиса (Bray-Curtis dissimilarity, 0 - полное совпадение пациентов по составу микробиоты, 1 - полное несовпадение 
+  as.matrix() %>% 
+  agnes( #выбираем Agglomerative clustering (иерархическая кластеризация снизу вверх)
+    diss = TRUE, #на вход подана dissimilarity matrix
+    method = "ward")
+
+fviz_dend(agnes2, 
+          cex = 0.2, k = 3,
+          rect = TRUE,
+          k_colors = "jco",
+          color_labels_by_k = FALSE,
+          label_cols = ifelse (data_wide[agnes2$order,]$Health_state == "Health", "green", "red"),
+          main = "Дендрограмма кластеризации субъектов по количеству G-таксонов",
+  ylab = "Высота",)
+
+```
+
+-   Сравнение полученных кластеров по основным переменным
+
+```{r, warning=FALSE, message=FALSE}
+
+fisher.test.simulate.p.values <- function(data, variable, by, ...) {
+  result <- list()
+  test_results <- stats::fisher.test(data[[variable]], data[[by]], simulate.p.value = TRUE)
+  result$p <- test_results$p.value
+  result$test <- test_results$method
+  result
+}
+
+data_wide %>% 
+  add_column("Cluster" = cutree(agnes2, k = 3)) %>% # Создаём новый столбец - вектор принадлежности к кластерам  
+  select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
+  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
+                            all_categorical() ~ c(0, 0)),
+              by = Cluster) %>% 
+  add_p(test = list(all_categorical() ~ "fisher.test.simulate.p.values"))  # this applies the custom test to all categorical variables
+ 
+
+```
+
+## Кластеризация семейств (F-таксонов)
+
+### AGNES (agglomerative clustering)
+
+```{r, warning=FALSE, message=FALSE}
+
+clusters_number <- 2 #количество кластеров
+
+F_scaled <- data_wide %>% 
+  mutate(patient_ID = paste0("patient_", patient_ID)) %>% 
+  column_to_rownames("patient_ID") %>% 
+  select (ends_with("_F")) %>% #выбираем только G-таксоны
+  scale () #нормируем данные
+
+agnes <- F_scaled %>% 
+  dist (method = "euclidean") %>% #cоздаём матрицу дистанций
+  as.matrix() %>%  
+  agnes(
+    diss = TRUE, #на вход подана dissimilarity matrix
+    method = "ward")
+
+fviz_dend(agnes,
+          k = clusters_number,
+          rect = TRUE,
+          k_colors = "jco",
+          show_labels = TRUE,
+          label_cols = ifelse (data_wide[agnes$order,]$Health_state == "Health", "green", "red"),#цвет лейблов определяется по Health_state
+          cex = 0.2, #размер шрифта лейблов
+          main = "Кластеризация субъектов по содержанию G-таксонов до коррекции batch-эффекта",
+          ylab = "Высота")
+
+```
+
+-   Сравнение полученных кластеров по основным переменным
+
+```{r, warning=FALSE, message=FALSE}
+
+data_wide %>% 
+  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% #Создаём новый столбец - вектор принадлежности к кластерам  
+  select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
+  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
+                            all_categorical() ~ c(0, 0)),
+              by = Cluster) %>% 
+  add_p()
+
+```
+
+### kMeans
+
+```{r}
+
+kmeans <- F_scaled %>% 
+  kmeans(centers = clusters_number, # Кол-во кластеров
+         iter.max = 20, # Максимальное кол-во итераций
+         nstart = 35) # Кол-во центройдов в начале
+
+  fviz_cluster(kmeans,data = F_scaled,
+               ellipse = FALSE,
+               show.clust.cent = FALSE,
+               geom = "point",
+               main = "Кластеризация субъектов по F_таксонам")
+
+```
+
+### DBSCAN
+
+-   определением оптимального размера радиуса (eps)
+
+```{r}
+
+F_scaled %>% 
+dbscan::kNNdistplot(minPts = 20)  # мин. количество субъектов в кластере
+
+abline(h=25, col = "red", lty = 2)
+
+```
+
+```{r}
+
+F_scaled %>%
+dbscan::dbscan(eps = 25, # радиус
+       minPts = 20) %>%  # мин. количество субъектов в кластере
+  fviz_cluster(
+    data = F_scaled, 
+    stand = TRUE,
+    ellipse = FALSE, 
+    show.clust.cent = FALSE,
+    geom = "point", 
+    palette = "jco", 
+    ggtheme = theme_classic())
+
+```
+
+## Кластеризация порядков (O-таксонов)
+
+### AGNES (agglomerative clustering)
+
+```{r, warning=FALSE, message=FALSE}
+
+clusters_number <- 2 #количество кластеров
+
+O_scaled <- data_wide %>% 
+  mutate(patient_ID = paste0("patient_", patient_ID)) %>% 
+  column_to_rownames("patient_ID") %>% 
+  select (ends_with("_O")) %>% #выбираем только G-таксоны
+  scale () #нормируем данные
+
+agnes <- O_scaled %>% 
+  dist (method = "euclidean") %>% #cоздаём матрицу дистанций
+  as.matrix() %>%  
+  agnes(
+    diss = TRUE, #на вход подана dissimilarity matrix
+    method = "ward")
+
+fviz_dend(agnes,
+          k = clusters_number,
+          rect = TRUE,
+          k_colors = "jco",
+          show_labels = TRUE,
+          label_cols = ifelse (data_wide[agnes$order,]$Health_state == "Health", "green", "red"),#цвет лейблов определяется по Health_state
+          cex = 0.2, #размер шрифта лейблов
+          main = "Дендрограмма кластеризации субъектов по количеству G-таксонов",
+          ylab = "Высота")
+
+```
+
+-   Сравнение полученных кластеров по основным переменным
+
+```{r, warning=FALSE, message=FALSE}
+
+data_wide %>% 
+  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% #Создаём новый столбец - вектор принадлежности к кластерам  
+  select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
+  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
+                            all_categorical() ~ c(0, 0)),
+              by = Cluster) %>% 
+  add_p()
+
+```
+
+### kMeans
+
+```{r}
+
+kmeans <- O_scaled %>% 
+  kmeans(centers = clusters_number, # Кол-во кластеров
+         iter.max = 20, # Максимальное кол-во итераций
+         nstart = 35) # Кол-во центройдов в начале
+
+  fviz_cluster(kmeans,data = O_scaled,
+               ellipse = FALSE,
+               show.clust.cent = FALSE,
+               geom = "point",
+               main = "Кластеризация субъектов по O_таксонам")
+
+```
+
+### DBSCAN
+
+-   определением оптимального размера радиуса (eps)
+
+```{r}
+
+O_scaled %>% 
+dbscan::kNNdistplot(minPts = 20)  # мин. количество субъектов в кластере
+
+abline(h=18, col = "red", lty = 2)
+
+```
+
+```{r}
+
+O_scaled %>%
+dbscan::dbscan(eps = 18, #радиус
+       minPts = 20) %>%  #мин. количество субъектов в кластере
+  fviz_cluster(
+    data = O_scaled, 
+    stand = TRUE,
+    ellipse = FALSE, 
+    show.clust.cent = FALSE,
+    geom = "point", 
+    palette = "jco", 
+    ggtheme = theme_classic())
+
+```
+
+ 
+
+## Batch-effects correction
+
+-   использовался пакет MBECS, пошаговое описание действий доступно по ссылке <https://github.com/rmolbrich/MBECS>
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+
+#devtools::install_github("rmolbrich/MBECS")
+#MBECS introductionhttps://bioconductor.org/packages/release/bioc/vignettes/MBECS/inst/doc/mbecs_vignette.html
+library(MBECS)
+
+#1. Get started
+#Создание объекта класса MbecData
+mbec.obj <- mbecProcessInput (
+  list (
+    #abundance table:
+  combined_bacteria %>%
+    select (!colnames (G_only_one) [- c (1,2)]) %>%  #удаление G_таксонов, которые обнаружены только в одном исследовании
+    select (where (function(x) 
+      sum (x != 0)/ nrow(.) * 100 >= 5)) %>% #выбор переменных, у которых менее 95% нули
+    rename("sID" = "patient_ID") %>%
+    mutate(sID = paste0 ("S", sID)) %>% 
+    column_to_rownames('sID') %>% 
+    as.data.frame(),
+  
+  #meta-data:
+  combined_info %>%
+    select (where (function(x) 
+      sum (!is.na(x))/ nrow(.) * 100 >= 5)) %>% #выбор переменных, у которых менее 95% NA
+    rename("sID" = "patient_ID") %>% 
+    mutate(sID = as.character(sID),
+           sID = paste0 ("S", sID),
+           research_ID = as.factor(research_ID)) %>% 
+    select (sID, everything()) %>% 
+    as.data.frame()          
+  ))
+
+
+#2. Centered log-ratio transformation of the data
+mbec.obj <- mbecTransform(mbec.obj, 
+                          method = "clr",
+                          offset = 0.0001) #смещение
+
+
+#3. Preliminary report
+#mbecReportPrelim(input.obj=mbec.obj, 
+                 #model.vars=c('research_ID', 'Health_state'),
+                 #model.vars=c (batch effect, presumed biological effect of interest)
+                 #type="otu", #which abundance matrix to use for evaluation:  'cor'/'clr'/'tss'
+                 #file.name = "Batch_Preliminary_Report_otu",
+                 #file.dir = "data/originals/",
+                 #return.data = FALSE)
+                 
+```
+
+**Подготовлен Preliminary report (data/originals/).**
+
+- сравнение batch-эффектов от research_ID и Seq_region по их процентному вкладу в вариацию данных
+
+```{r, message=FALSE}
+
+mbecModelVariance(
+  input.obj=mbec.obj, 
+  model.vars=c('research_ID', 'Health_state'),
+  method="pvca",type="otu") %>% 
+  mbecPVCAStatsPlot() 
+
+mbecModelVariance(
+  input.obj=mbec.obj, 
+  model.vars=c('Seq_region', 'Health_state'),
+  method="pvca",type="otu") %>% 
+  mbecPVCAStatsPlot()
+
+```
+
+
+-   коррекция batch-эффекта (research_ID)
+
+```{r, include=FALSE}
+
+#Run corrections
+mbec.obj <- mbecRunCorrections(
+  mbec.obj, 
+  model.vars=c('research_ID', 'Health_state'),
+#model.vars=c (batch effect, presumed biological effect of interest) 
+method = "bat", #batch effect correcting algorithm:
+#Batch Mean Centering (bmc) /ComBat (bat)/Remove Batch Effect (rbe)
+type = "otu") #which abundance matrix to use
+
+#Post report
+mbecReportPost(
+  input.obj=mbec.obj, 
+  model.vars=c('research_ID', 'Health_state'),
+#model.vars=c (batch effect, presumed biological effect of interest) 
+type="otu", # which abundance matrix to use for evaluation: clr/otu/tss
+file.name = "Batch_(research_id)_Correction_Report_otu_bat",
+file.dir = "data/originals/",
+return.data = FALSE)
+
+```
+
+-   Извлечение скорректированных данных
+
+```{r, message=FALSE, warning=FALSE}
+
+library (datawizard)
+
+#Retrieve corrrected data
+ps.cor.bat <- mbecGetPhyloseq(mbec.obj, 
+                          type="cor",
+                          label="bat") #which type of data to add (correction)
+
+combined_bacteria_batched <- ps.cor.bat@otu_table %>% 
+  as.data.frame() %>% 
+  data_rotate (rownames	= "patient_ID") %>% 
+  mutate (patient_ID = sub ("S", "", patient_ID),
+          patient_ID = as.numeric(patient_ID))
+
+data_wide_batched <- combined_info %>% 
+  select (where (function(x) 
+      sum (!is.na(x))/ nrow(.) * 100 >= 5)) %>% #выбор переменных, у которых менее 95% NA
+  left_join(combined_bacteria_batched)
+
+rm (combined_bacteria_batched)
+```
+
+####Principal Component Analysis 
+
+- Principal Component Analysis *до* коррекции batch-эффекта (research_ID)
+
+```{r, message=FALSE, warning=FALSE, error=FALSE}
+
+plot <- mbecPCA(input.obj=mbec.obj, 
+        model.vars=c('research_ID', 'Health_state'),
+        type="otu", pca.axes=c(1,2), return.data = FALSE) 
+
+ggsave("data/pictures/PCA_befor_batching.jpeg", plot = plot)
+```
+
+- Principal Component Analysis *после* коррекции batch-эффекта (research_ID)
+
+```{r, message=FALSE, warning=FALSE, error=FALSE}
+
+plot <- mbecPCA(input.obj=mbec.obj, 
+        model.vars=c('research_ID', 'Health_state'),
+        type="cor", label = "bat",
+        pca.axes=c(1,2), return.data = FALSE)  
+
+ggsave("data/pictures/PCA_after_batching.jpeg", plot = plot)
+
+```
+
+####Heatmap
+
+- Heatmap содержания 10-ти наиболее вариабельных таксонов *до* коррекции batch-эффекта (research_ID)
+
+```{r}
+mbecHeat(input.obj=mbec.obj, method = "TOP", n = 10, 
+         model.vars=c('research_ID', 'Health_state'),
+         center = TRUE, scale = TRUE, 
+         type="otu",
+         return.data = FALSE)
+
+```
+
+- Heatmap содержания 10-ти наиболее вариабельных таксонов *после* коррекции batch-эффекта (research_ID)
+
+```{r}
+mbecHeat(input.obj=mbec.obj, method = "TOP", n = 10, 
+         model.vars=c('research_ID', 'Health_state'),
+         center = TRUE, scale = TRUE, 
+         type="cor", label = "bat", 
+         return.data = FALSE)
+```
+
+## Кластеризация родов (G-таксонов) после коррекции batch-эффекта (research_ID)
+
+### AGNES (agglomerative clustering)
+
+```{r, warning=FALSE, message=FALSE}
+
+clusters_number <- 4 #количество кластеров
+
+library(cluster)
+library(factoextra)
+
+G_scaled <- data_wide_batched %>% 
+  mutate(patient_ID = paste0("patient_", patient_ID)) %>% 
+  column_to_rownames("patient_ID") %>% 
+  select (ends_with("_G")) %>% #выбираем только G-таксоны
+  scale () #нормируем данные
+
+agnes <- G_scaled %>% 
+  dist (method = "euclidean") %>% #cоздаём матрицу дистанций
+  as.matrix() %>%  
+  agnes( #выбираем Agglomerative clustering (иерархическая кластеризация снизу вверх)
+    diss = TRUE, #на вход подана dissimilarity matrix
+    method = "ward")
+
+fviz_dend(agnes,
+          k = clusters_number,
+          rect = TRUE,
+          k_colors = "jco",
+          show_labels = TRUE,
+          label_cols = ifelse (data_wide_batched[agnes$order,]$Health_state == "Health", "green", "red"),#цвет лейблов определяется по Health_state
+          cex = 0.2, #размер шрифта лейблов
+          main = "Кластеризация субъектов по содержанию G-таксонов после batch-коррекции",
+          ylab = "Высота")
+
+```
+
+-   Сравнение полученных кластеров по основным переменным
+
+```{r, warning=FALSE, message=FALSE}
+
+data_wide %>% 
+  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% # Создаём новый столбец - вектор принадлежности к кластерам  
+  select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
+  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
+                            all_categorical() ~ c(0, 0)),
+              by = Cluster) %>% 
+  add_p()
+
+```
+
+### kMeans
+
+```{r}
+
+kmeans <- G_scaled %>% 
+  kmeans(centers = clusters_number, # Кол-во кластеров
+         iter.max = 20, # Максимальное кол-во итераций
+         nstart = 35) # Кол-во центройдов в начале
+
+  fviz_cluster(kmeans,data = G_scaled,
+               ellipse = FALSE,
+               show.clust.cent = FALSE,
+               geom = "point",
+               main = "Кластеризация субъектов по содержанию G-таксонов до коррекции batch-эффекта")
+      
+```
+               
+### AGNES (несходство Брея --- Кертиса)
+
+-   с матрицей-дистанций с показателями несходства Брея --- Кертиса
+
+```{r, message=FALSE, warning=FALSE}
+
+agnes2 <- data_wide_batched %>% 
+  column_to_rownames("patient_ID") %>% 
+  select (ends_with("_G")) %>% 
+  vegdist(method = "bray") %>% #cоздаём матрицу дистанций, рассчитывая показатель несходства Брея — Кертиса (Bray-Curtis dissimilarity, 0 - полное совпадение пациентов по составу микробиоты, 1 - полное несовпадение 
+  as.matrix() %>% 
+  agnes( #выбираем Agglomerative clustering (иерархическая кластеризация снизу вверх)
+    diss = TRUE, #на вход подана dissimilarity matrix
+    method = "ward")
+
+fviz_dend(agnes2, 
+          cex = 0.2, k = clusters_number,
+          rect = TRUE,
+          k_colors = "jco",
+          color_labels_by_k = FALSE,
+          label_cols = case_when (data_wide_batched[agnes2$order,]$Age_range == "> 43" ~ "red",
+                                  data_wide_batched[agnes2$order,]$Age_range == "16-43" ~ "green",
+                                  TRUE ~ "white"),
+          main = "Дендрограмма кластеризации субъектов по количеству G-таксонов",
+          ylab = "Высота")
+
+```
+
+-   Сравнение полученных кластеров по основным переменным
+
+```{r, warning=FALSE, message=FALSE}
+
+data_wide %>% 
+  add_column("Cluster" = cutree(agnes2, k = clusters_number)) %>% # Создаём новый столбец - вектор принадлежности к кластерам  
+  select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
+  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
+                            all_categorical() ~ c(0, 0)),
+              by = Cluster) %>% 
+  add_p()
+
+```
 
 ### bac_functions
 
