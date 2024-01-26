@@ -1651,3 +1651,8 @@ dbscan::dbscan(eps = 18, #радиус
     ggtheme = theme_classic())
 
 ```
+
+```{r}
+#test commit
+```
+
