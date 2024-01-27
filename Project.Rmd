@@ -1524,7 +1524,7 @@ final_result_df$p.adjusted <- round(p.adjust(final_result_df$p.value, method = "
 
 # Фильтрация только статистически значимых результатов
 significant_results_G <- final_result_df %>%
-  filter(p.adjusted < 0.05)
+  filter(p.adjusted < 0.05) %>%  arrange(desc(abs(estimate)))
 
  #install.packages("knitr")
  #install.packages("kableExtra")
@@ -1540,6 +1540,151 @@ cat("Статистически значимые результаты:\n")
 kable(significant_results_G, "html") %>%
   kable_styling(full_width = F)
 ```
+
+## F - Family (семейство)
+
+```{r warning=FALSE}
+
+# Применение функции ко всем таксонам
+unique_taxa <- unique(F_long$Taxon)
+
+result_list <- lapply(unique_taxa, function(taxon) {
+  analyze_result <- analyze_taxon(taxon, F_long)
+  if (!is.null(analyze_result)) {
+    return(analyze_result)
+  } else {
+    return(data.frame())  # Вернуть пустой data.frame, чтобы не влиять на bind_rows
+  }
+})
+
+# Объединение результатов в один dataframe
+final_result_df <- bind_rows(result_list) %>%
+  mutate(estimate = round(estimate, 3),
+         `2.5 %` = round(`2.5 %`, 4),
+         `97.5 %` = round(`97.5 %`, 4)
+         )
+
+# Коррекция на множественные сравнения по методу Холма
+final_result_df$p.adjusted <- round(p.adjust(final_result_df$p.value, method = "holm"),3)
+
+# Фильтрация только статистически значимых результатов
+significant_results_F <- final_result_df %>%
+  filter(p.adjusted < 0.05) %>%  arrange(desc(abs(estimate)))
+
+# Вывод таблички
+cat("Статистически значимые результаты:\n")
+kable(significant_results_F, "html") %>%
+  kable_styling(full_width = F)
+```
+
+
+## C - Class (класс)
+
+```{r warning=FALSE}
+# Применение функции ко всем таксонам
+unique_taxa <- unique(C_long$Taxon)
+
+result_list <- lapply(unique_taxa, function(taxon) {
+  analyze_result <- analyze_taxon(taxon, C_long)
+  if (!is.null(analyze_result)) {
+    return(analyze_result)
+  } else {
+    return(data.frame())  # Вернуть пустой data.frame, чтобы не влиять на bind_rows
+  }
+})
+
+# Объединение результатов в один dataframe
+final_result_df <- bind_rows(result_list) %>%
+  mutate(estimate = round(estimate, 3),
+         `2.5 %` = round(`2.5 %`, 4),
+         `97.5 %` = round(`97.5 %`, 4)
+         )
+
+# Коррекция на множественные сравнения по методу Холма
+final_result_df$p.adjusted <- round(p.adjust(final_result_df$p.value, method = "holm"),3)
+
+# Фильтрация только статистически значимых результатов
+significant_results_C <- final_result_df %>%
+  filter(p.adjusted < 0.05) %>%  arrange(desc(abs(estimate)))
+
+# Вывод таблички
+cat("Статистически значимые результаты:\n")
+kable(significant_results_C, "html") %>%
+  kable_styling(full_width = F)
+```
+
+## O - Order (порядок)
+
+```{r warning=FALSE}
+# Применение функции ко всем таксонам
+unique_taxa <- unique(O_long$Taxon)
+
+result_list <- lapply(unique_taxa, function(taxon) {
+  analyze_result <- analyze_taxon(taxon, O_long)
+  if (!is.null(analyze_result)) {
+    return(analyze_result)
+  } else {
+    return(data.frame())  # Вернуть пустой data.frame, чтобы не влиять на bind_rows
+  }
+})
+
+# Объединение результатов в один dataframe
+final_result_df <- bind_rows(result_list) %>%
+  mutate(estimate = round(estimate, 3),
+         `2.5 %` = round(`2.5 %`, 4),
+         `97.5 %` = round(`97.5 %`, 4)
+         )
+
+# Коррекция на множественные сравнения по методу Холма
+final_result_df$p.adjusted <- round(p.adjust(final_result_df$p.value, method = "holm"),3)
+
+# Фильтрация только статистически значимых результатов
+significant_results_O <- final_result_df %>%
+  filter(p.adjusted < 0.05) %>%  arrange(desc(abs(estimate)))
+
+# Вывод таблички
+cat("Статистически значимые результаты:\n")
+kable(significant_results_O, "html") %>%
+  kable_styling(full_width = F)
+```
+
+## P - Phylum (тип)
+
+```{r warning=FALSE}
+# Применение функции ко всем таксонам
+unique_taxa <- unique(P_long$Taxon)
+
+result_list <- lapply(unique_taxa, function(taxon) {
+  analyze_result <- analyze_taxon(taxon, P_long)
+  if (!is.null(analyze_result)) {
+    return(analyze_result)
+  } else {
+    return(data.frame())  # Вернуть пустой data.frame, чтобы не влиять на bind_rows
+  }
+})
+
+# Объединение результатов в один dataframe
+final_result_df <- bind_rows(result_list) %>%
+  mutate(estimate = round(estimate, 3),
+         `2.5 %` = round(`2.5 %`, 4),
+         `97.5 %` = round(`97.5 %`, 4)
+         )
+
+# Коррекция на множественные сравнения по методу Холма
+final_result_df$p.adjusted <- round(p.adjust(final_result_df$p.value, method = "holm"),3)
+
+# Фильтрация только статистически значимых результатов
+significant_results_P <- final_result_df %>%
+  filter(p.adjusted < 0.05) %>%  arrange(desc(abs(estimate)))
+
+# Вывод таблички
+cat("Статистически значимые результаты:\n")
+kable(significant_results_P, "html") %>%
+  kable_styling(full_width = F)
+```
+
+
+
 ## Распределения таксонов G(Genus - Род)
 
 #### Гистограмма по количеству пациентов (Здоров - СРК)
