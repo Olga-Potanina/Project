@@ -2300,6 +2300,7 @@ G_long_1 <- data_long_1 %>% subset(grepl("_G", Taxon))
 #Модель отдельно для таксонов G уровня
 
 ```{r}
+
 G_long_serotonin <- G_long_1 %>%
   filter( ! is.na(`Серотонин`)) %>%
   filter(Percentage > 0.0000)
@@ -2313,23 +2314,8 @@ G_long_serotonin$patient_ID <- as.factor(G_long_serotonin$patient_ID)
 
 
 
-model_ser_G_1 <- glmer(Health_state ~ Серотонин +  (1 | research_ID) + (1 | patient_ID), data = G_long_serotonin, family = binomial)
+model_ser_G_1 <- glmer(Health_state ~ Серотонин +  (1 | research_ID), data = G_long_serotonin, family = binomial)
 summary(model_ser_G_1)
-
-model_ser_G_2 <- glmer(Health_state ~ Серотонин +  (1 | Seq_date) + (1 | patient_ID), data = G_long_serotonin, family = binomial)
-summary(model_ser_G_2)
-
-anova(model_ser_G_1, model_ser_G_2)
-
-
-
-G_long_serotonin_2 <- G_long_1 %>%
-  filter(Percentage > 0.0000) %>%
-  filter(`Серотонин` == "produce")
-
-
-model_ser_G_3 <- glmer(Health_state ~ Percentage +  (1 | Seq_date) + (1 | patient_ID), data = G_long_serotonin_2, family = binomial)
-summary(model_ser_G_3)
 
 ```
 
