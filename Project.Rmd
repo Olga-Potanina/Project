@@ -1,12 +1,16 @@
 ---
-title: "Project"
-author: "Olga Potanina"
-date: "`r Sys.Date()`"
-output: html_document
+title: "Comparative analysis of the gut microbiota composition of healthy people and people with diarrhoea-predominant irritable bowel syndrome"
+author: "O.N. Potanina, A. Sozontov, D. Syrkova, A. Soroka, E. Shelly, E. Chukhrova"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 6
+    toc_float: true
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = FALSE)
 library(readxl)
 library(openxlsx)
 library (tidyverse)
@@ -1226,6 +1230,97 @@ write_rds(P_long,
 ```
 
 # Анализ
+
+## Сравнение  среднего общего содержания G_таксонов с особыми свойствами
+
+```{r, message=FALSE}
+
+comparison <- function (special_data, special_property) {
+#vector of the G_taxa names with special properties:  
+    bac_names <-  special_data %>% 
+      subset(grepl("_G", Taxon)) %>% .$Taxon
+#number of the G_taxa in data_wide
+    number_of_taxons <- data_wide %>% 
+      select(patient_ID, Health_state, any_of(bac_names)) %>% 
+      ncol() - 2
+# t-test
+t <- data_wide %>% 
+  select(patient_ID, Health_state, any_of(bac_names)) %>% 
+  pivot_longer(ends_with("_G"),
+               names_to = "Taxon", values_to = "Percentage") %>% 
+  group_by(patient_ID, Health_state) %>% 
+  summarise(across(Percentage, sum)) %>% 
+  ungroup() %>% 
+  t.test (Percentage ~ Health_state, .)
+#a tibble with results
+tibble("G_taxa" = special_property, 
+       "Number of taxa" = number_of_taxons,
+       "Mean of total percentage in IBS" = t$estimate["mean in group Disease"],
+       "Mean of total percentage in healthy" = t$estimate["mean in group Health"],
+       "95% CI_1" = t$conf.int[1],
+       "95% CI_2" = t$conf.int[2],
+       "p.unadjusted" = t$p.value)
+}
+
+
+comparison_in_total <- rbind(
+    comparison (bac_functions %>% filter (Серотонин == "produce"), "Serotonin producing"),
+    comparison (bac_functions %>% filter (Серотонин == "destroy"), "Serotonin destroying"),
+    comparison (bac_functions %>% filter (Ацетилхолин == "produce"), "Acetylcholine producing"),
+    comparison (bac_functions %>% filter (ГАМК == "produce"), "GABA producing"),
+    comparison (bac_functions %>% filter (ГАМК == "destroy"), "GABA destroying"),
+    comparison (bac_functions %>% filter (Дофамин == "produce"), "Dopamine producing"),
+    comparison (bac_functions %>% filter (Дофамин == "destroy"), "Dopamine destroying"),
+    comparison (bac_functions %>% filter (probiotics == 1), "Probiotics"),
+    comparison (bac_functions %>% filter (special_properties == 1), "Special_properties"),
+    comparison (bac_functions %>% filter (Gases == 1), "Gases producing"),
+    comparison (bac_functions %>% filter (Oral == 1), "Oral"),
+    comparison (bac_functions %>% filter (Inflammatory == 1), "Inflammatory"),
+    comparison (bac_functions %>% filter (Bacteria_category == "Патоген"), "Pathogens"),
+    comparison (bac_functions %>% filter (Bacteria_category == "Условно-нормальный"), "Conditionally normal"),
+    comparison (bac_functions %>% filter (A == 1), "Vitamin A producing"),
+    comparison (bac_functions %>% filter (B1 == 1), "Vitamin B1 producing"),
+    comparison (bac_functions %>% filter (B12 == 1), "Vitamin B12 producing"),
+    comparison (bac_functions %>% filter (B2 == 1), "Vitamin B2 producing"),
+    comparison (bac_functions %>% filter (B3 == 1), "Vitamin B3 producing"),
+    comparison (bac_functions %>% filter (B5 == 1), "Vitamin B5 producing"),
+    comparison (bac_functions %>% filter (B6 == 1), "Vitamin B6 producing"),
+    comparison (bac_functions %>% filter (B7 == 1), "Vitamin B7 producing"),
+    comparison (bac_functions %>% filter (B9 == 1), "Vitamin B9 producing"),
+    comparison (bac_functions %>% filter (D3 == 1), "Vitamin D3 producing"),
+    comparison (bac_functions %>% filter (K2 == 1), "Vitamin K2 producing"),
+    comparison (bac_functions %>% filter (Ацетат == 1), "Acetate producing"),
+    comparison (bac_functions %>% filter (Пропионат == 1), "Propionate producing"),
+    comparison (bac_functions %>% filter (`Масляная кислота` == 1), "Butyrate producing"),
+    comparison (bac_functions %>% filter (Кофе == "Увеличена"), "Increase with coffee"),
+    comparison (bac_functions %>% filter (Курение == "Увеличена"), "Increase with smoking"),
+    comparison (bac_functions %>% filter (Курение == "Уменьшена"), "Derease with smoking"),
+    comparison (bac_functions %>% filter (Алкоголь == "Увеличена"), "Increase with alcohol"),
+    comparison (bac_functions %>% filter (Алкоголь == "Уменьшена"), "Derease with alcohol")
+    ) %>% 
+  filter (`Number of taxa` >= 3) %>% 
+  add_column(.before = "95% CI_1", "Difference in means" = .$"Mean of total percentage in IBS" - .$"Mean of total percentage in healthy") %>% 
+  mutate (across (c ("Mean of total percentage in IBS", "Mean of total percentage in healthy", "Difference in means", "95% CI_1", "95% CI_2"), function (x) round (x,2)),
+          p.unadjusted = round (p.unadjusted, 3),
+          p.value.holm = p.adjust(p.unadjusted, "holm")) %>% 
+  unite("95% CI_1", "95% CI_2", col = "95% CI", sep = ":") %>% 
+  arrange(desc (abs (.$"Difference in means")))
+
+write_rds(comparison_in_total, 
+          file = "data/originals/comparison_in_total.rds") 
+
+comparison_in_total %>% 
+  mutate (p.unadjusted = ifelse(p.unadjusted < 0.001, "< 0.001", round (p.unadjusted,3)),
+          p.value.holm = ifelse(p.value.holm < 0.001, "< 0.001", round (p.value.holm,3))
+) %>% 
+  flextable() %>% theme_box() %>% 
+  align(align = "center", part = "all") %>% 
+  flextable::footnote (i = 1, j = 7, value = as_paragraph (c ("Welch Two Sample t-test")),
+            ref_symbols = "1", part = "header") %>% 
+  set_caption("Results of IBS/healthy people comparison of means of total percentage of G-taxa with special properties")
+
+
+```
 
 ## Факторный анализ
 
