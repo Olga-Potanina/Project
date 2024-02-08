@@ -5,7 +5,6 @@ output:
   html_document:
     toc: yes
     toc_depth: 6
-    toc_float: true
     code_folding: hide
 ---
 
@@ -49,7 +48,7 @@ sep = "\n")
 
 -   Объединение `info_healthy` и `info_ibs` в единый датасет `combined_info` c редактированием содержимого
 
-```{r combined_info, message=FALSE}
+```{r combined_info, message=FALSE, warning=FALSE, error=FALSE}
 
 combined_info <- info_healthy %>% 
   bind_rows(info_ibs) %>%
@@ -137,19 +136,32 @@ combined_info <- info_healthy %>%
 rm (info_healthy, info_ibs)
 summary (combined_info)
 
-```
+#install.packages("summarytools")
+library(summarytools)
 
--   Таблица с количеством субъектов (n) в зависимости от исследования, даты, наличия/отсутствия СРК
+saved_x11_option <- st_options("use.x11")
+st_options(use.x11 = FALSE)
+
+combined_info %>% 
+  select(- patient_ID) %>% 
+  dfSummary() %>% 
+  print (method = "render")
+
+```
 
 ```{r, message=FALSE}
 
 combined_info %>% 
-  select (research_ID, Country, Seq_date, Health_state) %>% 
-  group_by(research_ID, Country, Seq_date, Health_state) %>% 
+  select (research_ID, Country, Seq_date, Seq_region, Health_state) %>% 
+  mutate(Country = if_else (research_ID == 4, "Australia, Austria, Germany, Greece, Hungary, Ireland, Israel, Italy, Norway, UK, USA", Country),
+         Seq_date = ifelse (research_ID == 4, "2018-2023", Seq_date),
+         Health_state = if_else (research_ID == 4, "Disease/Health", Health_state)) %>% 
+  group_by(research_ID, Country, Seq_date, Seq_region, Health_state) %>% 
   summarise(n = n()) %>% 
   flextable() %>% theme_box() %>% 
-  merge_v(c ("research_ID", "Country", "Seq_date", "Health_state")) %>% 
-  align(align = "center", part = "all")
+  merge_v("Health_state") %>% 
+  align(align = "center", part = "all") %>% 
+  set_caption("General characteristics of the included studies")
 
 ```
 
@@ -284,8 +296,7 @@ rm (percentage_non_zero_non_na, result_df_sort)
 
 ```
 
-
--   Удалениe из `data_wide` колонок и строк с процентом NA/0 более threshold_percent 
+-   Удалениe из `data_wide` колонок и строк с процентом NA/0 более threshold_percent
 
 ```{r}
 
@@ -315,8 +326,8 @@ G_only_one <- data_wide %>%
 G_only_one
 
 ```
- 
-- Определение процента людей, у которых данные таксоны не обнаружены () 
+
+-   Определение процента людей, у которых данные таксоны не обнаружены ()
 
 ```{r, include=FALSE}
 
@@ -362,7 +373,7 @@ data_wide %>%
   
 ```
 
-- Определение процента людей, у которых данные таксоны не обнаружены () 
+-   Определение процента людей, у которых данные таксоны не обнаружены ()
 
 ```{r, include=FALSE}
 
@@ -403,7 +414,7 @@ data_wide %>%
   
 ```
 
-- Определение процента людей, у которых данные таксоны не обнаружены () 
+-   Определение процента людей, у которых данные таксоны не обнаружены ()
 
 ```{r, include=FALSE}
 
@@ -447,7 +458,7 @@ data_wide %>%
   
 ```
 
-- Определение процента людей, у которых данные таксоны не обнаружены () 
+-   Определение процента людей, у которых данные таксоны не обнаружены ()
 
 ```{r, warning=FALSE, include=FALSE}
 
@@ -468,14 +479,13 @@ data_wide %>%
 rm (С_taxon, res_ID)
 
 ```
+
 ### Среднее содержание P_таксонов, которые были обнаружены только в одном исследовании
 
 **P_таксонов, которые были обнаружены только в одном исследовании, нет**
 
- 
- 
-## data_wide (not batched)
-`
+    \## data_wide (not batched) \`
+
 ```{r}
 
 data_wide <- data_wide %>% 
@@ -899,7 +909,7 @@ mbec.obj <- mbecTransform(mbec.obj,
 
 **Подготовлен Preliminary report (data/originals/).**
 
-- сравнение batch-эффектов от research_ID и Seq_region по их процентному вкладу в вариацию данных
+-   сравнение batch-эффектов от research_ID и Seq_region по их процентному вкладу в вариацию данных
 
 ```{r, message=FALSE}
 
@@ -917,10 +927,9 @@ mbecModelVariance(
 
 ```
 
-
 -   коррекция batch-эффекта (research_ID)
 
-```{r, include=FALSE}
+```{r, message=FALSE, warning=FALSE}
 
 #Run corrections
 mbec.obj <- mbecRunCorrections(
@@ -932,20 +941,13 @@ method = "bat", #batch effect correcting algorithm:
 type = "otu") #which abundance matrix to use
 
 #Post report
-mbecReportPost(
-  input.obj=mbec.obj, 
-  model.vars=c('research_ID', 'Health_state'),
-#model.vars=c (batch effect, presumed biological effect of interest) 
-type="otu", # which abundance matrix to use for evaluation: clr/otu/tss
-file.name = "Batch_(research_id)_Correction_Report_otu_bat",
-file.dir = "data/originals/",
-return.data = FALSE)
-
-```
-
--   Извлечение скорректированных данных
-
-```{r, message=FALSE, warning=FALSE}
+#mbecReportPost(
+  #input.obj=mbec.obj, 
+  #model.vars=c('research_ID', 'Health_state'), #model.vars=c (batch effect, presumed biological effect of interest) 
+#type="otu", # which abundance matrix to use for evaluation: clr/otu/tss
+#file.name = "Batch_(research_id)_Correction_Report_otu_bat",
+#file.dir = "data/originals/",
+#return.data = FALSE)
 
 library (datawizard)
 
@@ -966,11 +968,12 @@ data_wide_batched <- combined_info %>%
   left_join(combined_bacteria_batched)
 
 rm (combined_bacteria_batched)
+
 ```
 
-####Principal Component Analysis 
+####Principal Component Analysis
 
-- Principal Component Analysis *до* коррекции batch-эффекта (research_ID)
+-   Principal Component Analysis *до* коррекции batch-эффекта (research_ID)
 
 ```{r, message=FALSE, warning=FALSE, error=FALSE}
 
@@ -981,7 +984,7 @@ plot <- mbecPCA(input.obj=mbec.obj,
 ggsave("data/pictures/PCA_befor_batching.jpeg", plot = plot)
 ```
 
-- Principal Component Analysis *после* коррекции batch-эффекта (research_ID)
+-   Principal Component Analysis *после* коррекции batch-эффекта (research_ID)
 
 ```{r, message=FALSE, warning=FALSE, error=FALSE}
 
@@ -996,7 +999,7 @@ ggsave("data/pictures/PCA_after_batching.jpeg", plot = plot)
 
 ####Heatmap
 
-- Heatmap содержания 10-ти наиболее вариабельных таксонов *до* коррекции batch-эффекта (research_ID)
+-   Heatmap содержания 10-ти наиболее вариабельных таксонов *до* коррекции batch-эффекта (research_ID)
 
 ```{r}
 mbecHeat(input.obj=mbec.obj, method = "TOP", n = 10, 
@@ -1007,7 +1010,7 @@ mbecHeat(input.obj=mbec.obj, method = "TOP", n = 10,
 
 ```
 
-- Heatmap содержания 10-ти наиболее вариабельных таксонов *после* коррекции batch-эффекта (research_ID)
+-   Heatmap содержания 10-ти наиболее вариабельных таксонов *после* коррекции batch-эффекта (research_ID)
 
 ```{r}
 mbecHeat(input.obj=mbec.obj, method = "TOP", n = 10, 
@@ -1083,7 +1086,7 @@ kmeans <- G_scaled %>%
                main = "Кластеризация субъектов по содержанию G-таксонов до коррекции batch-эффекта")
       
 ```
-               
+
 ### AGNES (несходство Брея --- Кертиса)
 
 -   с матрицей-дистанций с показателями несходства Брея --- Кертиса
@@ -1126,9 +1129,10 @@ data_wide %>%
 
 ```
 
-
 ## data_wide (batched)
-`
+
+\`
+
 ```{r}
 
 
@@ -1139,9 +1143,7 @@ write_rds(data_wide,
 
 ```
 
-## bac_functions
-
--   загрузка и редактирование `bac_functions`
+## bac_functions dataset
 
 ```{r}
 
@@ -1231,7 +1233,7 @@ write_rds(P_long,
 
 # Анализ
 
-## Сравнение  среднего общего содержания G_таксонов с особыми свойствами
+## Сравнение среднего общего содержания G_таксонов с особыми свойствами
 
 ```{r, message=FALSE}
 
@@ -1310,9 +1312,8 @@ write_rds(comparison_in_total,
           file = "data/originals/comparison_in_total.rds") 
 
 comparison_in_total %>% 
-  mutate (p.unadjusted = ifelse(p.unadjusted < 0.001, "< 0.001", round (p.unadjusted,3)),
-          p.value.holm = ifelse(p.value.holm < 0.001, "< 0.001", round (p.value.holm,3))
-) %>% 
+  mutate (p.unadjusted = ifelse(p.unadjusted < 0.001, "< 0.001", p.unadjusted),
+          p.value.holm = ifelse(p.value.holm < 0.001, "< 0.001", p.value.holm)) %>%
   flextable() %>% theme_box() %>% 
   align(align = "center", part = "all") %>% 
   flextable::footnote (i = 1, j = 7, value = as_paragraph (c ("Welch Two Sample t-test")),
@@ -1521,6 +1522,7 @@ Wilcox_comparison_round_2 <- data_wide %>%
  )
  
 ```
+
 ## GLM метод для нулей
 
 ```{r labels for Tweedie GLM model, message=FALSE}
@@ -1544,6 +1546,7 @@ start_values <- c(0, 0, 1)
 ```
 
 ## G - Genus (Род)
+
 ```{r warning=FALSE}
 
 analyze_taxon <- function(taxon_name, data) {
@@ -1672,7 +1675,6 @@ kable(significant_results_F, "html") %>%
   kable_styling(full_width = F)
 ```
 
-
 ## C - Class (класс)
 
 ```{r warning=FALSE}
@@ -1778,12 +1780,9 @@ kable(significant_results_P, "html") %>%
   kable_styling(full_width = F)
 ```
 
-
-
 ## Распределения таксонов G(Genus - Род)
 
 #### Гистограмма по количеству пациентов (Здоров - СРК)
-
 
 ```{r}
 create_and_plot_taxon_groups <- function(filter_pattern, step_size, dataset_name) {
@@ -1994,7 +1993,6 @@ create_and_plot_boxplots(G_long, "_G", 3, "interaction(Health_state, Smoking)", 
 create_and_plot_boxplots(G_long, "_G", 3, "interaction(Health_state, Alcohol)", "Боксплоты для таксона (Статус употребления алкоголя + статус заболевания)")
 ```
 
-
 ## Распределения таксонов F Family(семейство)
 
 #### Гистограмма по количеству пациентов (Здоров - СРК)
@@ -2014,7 +2012,6 @@ create_and_plot_circular_diagrams(F_long, "_F", 40, "F_output_plot")
 ```{r}
 create_and_plot_boxplots(F_long, "_F", 4, "Health_state", "Боксплоты для таксонов по статусу: Здоров/СРК")
 ```
-
 
 ### Боксплот по возросту и полу
 
@@ -2054,7 +2051,6 @@ create_and_plot_circular_diagrams(C_long, "_C", 40, "F_output_plot")
 create_and_plot_boxplots(C_long, "_C", 4, "Health_state", "Боксплоты для таксонов по статусу: Здоров/СРК")
 ```
 
-
 ### Боксплот по возросту и полу
 
 ```{r}
@@ -2093,7 +2089,6 @@ create_and_plot_circular_diagrams(O_long, "_O", 30, "F_output_plot")
 create_and_plot_boxplots(O_long, "_O", 4, "Health_state", "Боксплоты для таксонов по статусу: Здоров/СРК")
 ```
 
-
 ### Боксплот по возросту и полу
 
 ```{r}
@@ -2111,7 +2106,6 @@ create_and_plot_boxplots(O_long, "_O", 3, "interaction(Health_state, Smoking)", 
 ```{r}
 create_and_plot_boxplots(O_long, "_O", 3, "interaction(Health_state, Alcohol)", "Боксплоты для таксона (Статус употребления алкоголя + статус заболевания)")
 ```
-
 
 ## Распределения таксонов P - Phylum (тип)
 
@@ -2133,7 +2127,6 @@ create_and_plot_circular_diagrams(P_long, "_P", 30, "P_output_plot")
 create_and_plot_boxplots(P_long, "_P", 4, "Health_state", "Боксплоты для таксонов по статусу: Здоров/СРК")
 ```
 
-
 ### Боксплот по возросту и полу
 
 ```{r}
@@ -2152,10 +2145,9 @@ create_and_plot_boxplots(P_long, "_P", 3, "interaction(Health_state, Smoking)", 
 create_and_plot_boxplots(P_long, "_P", 3, "interaction(Health_state, Alcohol)", "Боксплоты для таксона (Статус употребления алкоголя + статус заболевания)")
 ```
 
-
 ## Посмотрим на данные здоровых людей и людей с СРК как на многомерный вектор по всем таксонам и группам
 
-## G - Genus 
+## G - Genus
 
 ```{r}
 perform_permutation_test <- function(data, filter_pattern) {
@@ -2215,13 +2207,8 @@ perform_permutation_test(combined_bacteria_clean, "_O")
 perform_permutation_test(combined_bacteria_clean, "_P")
 ```
 
-
-
-
-
-
-
 ### Влияние серотонинпродуцирующих бактерий
+
 ```{r}
 library("lme4")
 library("stringr")
@@ -2254,6 +2241,7 @@ num_unique_F <- data_long %>%
   pull(Num_Unique)
 
 ```
+
 ###Добавляем данные по родам из двух семейств в bac_functions (данные добавлены в 8-й лист Bacterial group functions.xlsx)
 
 ```{r}
@@ -2309,10 +2297,8 @@ G_long_1 <- data_long_1 %>% subset(grepl("_G", Taxon))
 
 ```
 
-
-
-
 #Модель отдельно для таксонов G уровня
+
 ```{r}
 G_long_serotonin <- G_long_1 %>%
   filter( ! is.na(`Серотонин`)) %>%
@@ -2368,4 +2354,3 @@ dbscan::dbscan(eps = 18, #радиус
 ```{r}
 #test commit
 ```
-
