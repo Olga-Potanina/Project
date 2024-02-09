@@ -4,8 +4,9 @@ author: "O.N. Potanina, A. Sozontov, D. Syrkova, A. Soroka, E. Shelly, E. Chukhr
 output:
   html_document:
     toc: yes
-    toc_depth: 6
-    code_folding: hide
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
 ---
 
 ```{r setup, include=FALSE}
@@ -18,38 +19,34 @@ library(broom)
 library (flextable)
 ```
 
-# Предобработка данных
+# Data preprocessing
 
-## Чтение, слияние, редактирование исходных датасетов
-
--   Загрузка датасетов с информацией о здоровых людях (`info_healthy`) и пациентах с СРК (`info_ibs`)
+## Uploading, merging, and editing source datasets
 
 ```{r, message=FALSE}
 
-info_healthy <- read_xlsx ("data/raw/final_health_statistic.xlsx")
-info_ibs <- read_xlsx ("data/raw/final_ibs_141_statistic.xlsx")
+info_healthy <- read_xlsx ("data/raw/final_health_statistic.xlsx") #metadata of healthy subjects 
+info_ibs <- read_xlsx ("data/raw/final_ibs_141_statistic.xlsx") ##metadata of IBS subjects
 
 ```
 
--   Сравнение переменных в `info_healthy` и `info_ibs`
+```{r, echo=FALSE, eval=FALSE}
 
-```{r, echo=FALSE}
-
+#Variables comparison in `info_healthy` and `info_ibs`
 cat (
-c ("Уникальные переменные в info_ibs:", info_ibs %>% 
+c ("Unique variables в info_ibs:", info_ibs %>% 
   select (- c (intersect (names(info_healthy), names(info_ibs)))) %>% colnames()),
-c ("Уникальные переменные в info_healthy:", info_healthy %>% 
+c ("Unique variables в info_healthy:", info_healthy %>% 
   select (- c (intersect (names(info_ibs), names(info_healthy)))) %>% colnames()), 
 sep = "\n") 
 
 ```
 
-#### combined_info
-
--   Объединение `info_healthy` и `info_ibs` в единый датасет `combined_info` c редактированием содержимого
+#### combined_info dataset
 
 ```{r combined_info, message=FALSE, warning=FALSE, error=FALSE}
 
+#Combining `info_healthy` and `info_ibs` into a single dataset `combined_info` with subsequent content editing
 combined_info <- info_healthy %>% 
   bind_rows(info_ibs) %>%
   mutate (
@@ -63,7 +60,7 @@ combined_info <- info_healthy %>%
       Age_range == "18-40" | Age_range == "23-28" | Age_range == "16-42" | Age_range == "21-43" ~ "16-43",
       Age <= 43 ~ "16-43",
       Age > 43 ~ "> 43",
-      TRUE ~ NA_character_), #удалена группа 28-54
+      TRUE ~ NA_character_), #group 28-54 has been deleted
     research_ID = sub ("research_", "", research_ID),
     research_ID = case_when(
       research_ID == 0 ~ 1,
@@ -79,9 +76,9 @@ combined_info <- info_healthy %>%
     Smoking = case_when(
       Smoking == "No" ~ "No",
       Smoking == "Never" ~ "No",
-      Smoking == "Rarely (a few times/month)" ~ "Yes", #5 чел.
-      Smoking == "Occasionally (1-2 times/week)" ~ "Yes",  #3 чел.
-      Smoking == "Regularly (3-5 times/week)" ~ "Yes",  #1 чел.
+      Smoking == "Rarely (a few times/month)" ~ "Yes", #5 people
+      Smoking == "Occasionally (1-2 times/week)" ~ "Yes",  #3 people
+      Smoking == "Regularly (3-5 times/week)" ~ "Yes",  #1 people
       Smoking == "Daily" ~ "Yes"), #7 чел.
     Alcohol = sub ("rarely", "Rarely", Alcohol),
     Alcohol = ifelse(Alcohol == "Regularly (3-5 times/week)"|
@@ -90,9 +87,9 @@ combined_info <- info_healthy %>%
     Antibiotics_usage = case_when(
       Antibiotics_usage == "Month" | Antibiotics_usage == ~ "3 months" |
         Antibiotics_usage == "6 months" ~ "1-6 months",
-        #2 чел. больных Month, 0 чел. здоровых 3 months, 0 чел. здоровых для 6 months
+        #2 IBS people - Month, 0 healthy people - 3 months, 0 healthy people - 6 months
       Antibiotics_usage == "Year" | Antibiotics_usage == "Not use"  ~ 
-        "12 months/Not use"), # 0 чел. из здоровых для 6-12 months, 0 чел. больных для Not use
+        "12 months/Not use"), # 0 healthy people - 6-12 months, zero IBS people - Not use
     Hygiene = case_when(
       Hygiene == "Occasionally (1-2 times/week) cosmetics" ~ "Occasionally cosmetics (1-2 times/week)",
       Hygiene == "Rarely (a few times/month) cosmetics" ~ "Rarely cosmetics (a few times/month)",
@@ -110,7 +107,7 @@ combined_info <- info_healthy %>%
       BMI_range == "19.21-29.29" ~ "normal/overweight",
       BMI_range == "20.6-29.6" ~ "normal/overweight",
       BMI_range == "21.74-28.38" ~ "normal/overweight",
-      BMI_range == "18.5-30.8" ~ "normal/overweight", #немного больше 30
+      BMI_range == "18.5-30.8" ~ "normal/overweight", #a little over 30
       BMI < 18.5 ~ "underweight",
       BMI >= 18.5 & BMI < 30 ~ "normal/overweight",
       BMI >= 30 ~ "obese")
@@ -124,17 +121,16 @@ combined_info <- info_healthy %>%
     Isolation_source, # unique (combined_info$Isolation_source) = "faeces" 
     Assay_type, # unique (combined_info$Assay_type) = "AMPLICON"
     Target_gene, # unique (combined_info$Target_gene) = "16S"
-    Main_Disease, # unique (combined_info$Main_Disease) = NA (for healthy), 141 (for ibs)
+    Main_Disease, # unique (combined_info$Main_Disease) = NA (for healthy), 141 (for IBS)
     Drugs, # unique (combined_info$Drugs) = NA
     Social_status, # unique (combined_info$Social_status) =  NA, urban 
-    Weight_kg, Height_cm, Weight_min, Weight_max, Height_min, Height_max, BMI_range, #использованы для создания BMI_category, уменьшения количества NA в BMI
-    BMI, # NA у всех здоровых
-    Birth_Year, # имеются значения только в тех случаях, где возраст уже известен
-    Pets_type # только cat и NA
+    Weight_kg, Height_cm, Weight_min, Weight_max, Height_min, Height_max, BMI_range, #have been used to create the variable "BMI_category" and to reduce the amount of NA in "BMI"
+    BMI, # NA for all healthy people
+    Birth_Year, # no additional information
+    Pets_type # unique (combined_info$Pets_type = cat, NA
   ))
 
 rm (info_healthy, info_ibs)
-summary (combined_info)
 
 #install.packages("summarytools")
 library(summarytools)
@@ -173,7 +169,7 @@ library(gtsummary)
 
 combined_info %>% 
   select(! c(patient_ID,
-              Diet_duration, Additive_usage, Diet_type #у всех здоровых данные переменные = NA
+              Diet_duration, Additive_usage, Diet_type #for all healthy subjects = NA
               )) %>% 
   tbl_summary(digits = list(all_continuous() ~ c(0, 0),
                             all_categorical() ~ c(0, 0)),
@@ -182,12 +178,12 @@ combined_info %>%
 
 ```
 
--   Загрузка датасетов с данными о микробиоме здоровых людей (`bacteria_healthy`) и пациентов с СРК (`bacteria_ibs`) и их объединение в `combined_bacteria`
+###combined_bacteria and data_wide (not batched) datasets
 
 ```{r combined_bacteria, message = FALSE}
 
-bacteria_healthy <- read_csv("data/raw/final_bacteria_health.csv")
-bacteria_ibs <- read_csv("data/raw/final_bacteria_ibs_141.csv")
+bacteria_healthy <- read_csv("data/raw/final_bacteria_health.csv") #abundance table for healthy
+bacteria_ibs <- read_csv("data/raw/final_bacteria_ibs_141.csv") #abundance table for healthy
 
 combined_bacteria <- bacteria_healthy %>% 
   bind_rows (bacteria_ibs) %>% 
@@ -195,22 +191,14 @@ combined_bacteria <- bacteria_healthy %>%
 
 rm (bacteria_healthy, bacteria_ibs)
 
-```
-
--   Объединение `combined_bacteria` и `combined_info` в `data_wide`
-
-```{r data_wide, message=FALSE}
-
-data_wide <- combined_info %>% 
-  left_join (combined_bacteria)
+# Combining `combined_info` and `combined_bacteria` into `data_wide`
+data_wide <- combined_info %>% left_join (combined_bacteria)
 
 ```
 
  
 
-## Оценка доли NA и нулевых значений
-
--   Оценка доли NA в переменных `data_wide`
+## Estimation of the NA-proportion and zero values
 
 ```{r}
 
@@ -229,7 +217,7 @@ data_wide %>%
 
 ```
 
--   Рассчитаем процент не NA и не 0 данных по колонкам широкого формата
+- Estimation of the NA-proportion and zero values *in variables* of `data_wide`
 
 ```{r calculate percentage for each variable}
 
@@ -266,9 +254,10 @@ rm (calculate_percentage, result_df_sort)
 
 ```
 
--   Рассчитаем процент не NA и не 0 данных по форматированному `patient_ID`
+- Estimation of the NA-proportion and zero values *in cases* of `data_wide`
 
 ```{r}
+
 # Устанавливаем порог процента 
 threshold_percent <- 95
  
@@ -296,10 +285,10 @@ rm (percentage_non_zero_non_na, result_df_sort)
 
 ```
 
--   Удалениe из `data_wide` колонок и строк с процентом NA/0 более threshold_percent
 
 ```{r}
 
+# Deleting columns and rows with a NA/0-percentage more than threshold_percent from `data_wide`
 data_wide <- data_wide %>% 
   select (patient_ID, any_of (colnames(combined_info)), everything()) %>% 
   arrange(patient_ID)
@@ -308,38 +297,33 @@ data_wide <- data_wide %>%
 
  
 
-## Поиск "таксонов одного исследования"
+## Search for "single study taxa"
 
-### Среднее содержание G_таксонов, которые были обнаружены только в одном исследовании
+- G-taxa
 
 ```{r}
 
 G_only_one <- data_wide %>% 
   select (research_ID, ends_with("_G")) %>%
-  add_column(n = 1) %>% #колонка для дальнейшего подсчёта количества субъектов в исследовании
+  add_column(n = 1) %>% #for further counting the subjects number in each study
   group_by(research_ID) %>% 
   summarise_each (sum) %>% 
-  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #выбираем таксоны, которые обнаружены только в одном исследовании 
+  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #selecting "single study taxa"
   mutate (across(-c(1:2),
                  function(x) x/n))
 
-G_only_one
+G_only_one %>% as_tibble() %>% flextable()
 
-```
-
--   Определение процента людей, у которых данные таксоны не обнаружены ()
-
-```{r, include=FALSE}
-
+#Determining the percentage of people in whom these taxa have not been detected
 G_taxon <- 'Ellin517_G'
 res_ID <- 7
 
-data_wide %>% 
-  select (research_ID, G_taxon) %>%
-  filter (research_ID == res_ID) %>% 
-  summarise(across (-1,
-              function (x) sum (x==0)/nrow (.) * 100)) %>% 
-  rename ("Taxon_zero_percentage, %" = G_taxon) 
+#data_wide %>% 
+  #select (research_ID, G_taxon) %>%
+  #filter (research_ID == res_ID) %>% 
+  #summarise(across (-1,
+              #function (x) sum (x==0)/nrow (.) * 100)) %>% 
+  #rename ("Taxon_zero_percentage, %" = G_taxon) 
 
 # CM1G08_G - 73,6% нулей
 # Cladosporium_G - 94,0% нулей
@@ -355,37 +339,31 @@ data_wide %>%
 # Thiohalocapsa_G - 87,9% нулей 
 # Ellin517_G - 75,1% нулей 
 
-rm (G_taxon, res_ID)
 ```
 
-### Среднее содержание F_таксонов, которые были обнаружены только в одном исследовании
+- F-taxa
 
 ```{r}
 
 data_wide %>% 
   select (research_ID, ends_with("_F")) %>%
-  add_column(n = 1) %>% #колонка для дальнейшего подсчёта количества субъектов в исследовании
+  add_column(n = 1) %>% # for further counting the subjects number in each study
   group_by(research_ID) %>% 
   summarise_each (sum) %>% 
-  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #выбираем таксоны, которые обнаружены только в одном исследовании 
-  mutate (across(-c(1:2),
-                 function(x) x/n))
-  
-```
+  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #selecting "single study taxa"
+  mutate (across(-c(1:2), function(x) x/n)) %>% 
+  as_tibble() %>% flextable()
 
--   Определение процента людей, у которых данные таксоны не обнаружены ()
+#Determining the percentage of people in whom these taxa have not been detected
+#F_taxon <- 'Iamiaceae_F'
+#res_ID <- 1
 
-```{r, include=FALSE}
-
-F_taxon <- 'Iamiaceae_F'
-res_ID <- 1
-
-data_wide %>% 
-  select (research_ID, F_taxon) %>%
-  filter (research_ID == res_ID) %>% 
-  summarise(across (-1,
-              function (x) sum (x==0)/nrow (.) * 100)) %>% 
-  rename ("Taxon_zero_percentage, %" = F_taxon) 
+#data_wide %>% 
+  #select (research_ID, F_taxon) %>%
+  #filter (research_ID == res_ID) %>% 
+  #summarise(across (-1,
+              #function (x) sum (x==0)/nrow (.) * 100)) %>% 
+  #rename ("Taxon_zero_percentage, %" = F_taxon) 
 
 # Didymellaceae_F - 44,4% нулей
 # Cladosporiaceae_F - 36,1% нулей
@@ -394,39 +372,31 @@ data_wide %>%
 # 09D2Z48_F - 23,9% нулей
 # Aureobasidiaceae_F - 0% нулей 
 # Iamiaceae_F - 2,2% нулей
-
-rm (F_taxon, res_ID)
-
+  
 ```
 
-### Среднее содержание O_таксонов, которые были обнаружены только в одном исследовании
+- O-taxa
 
 ```{r}
 
 data_wide %>% 
   select (research_ID, ends_with("_O")) %>%
-  add_column(n = 1) %>% #колонка для дальнейшего подсчёта количества субъектов в исследовании
+  add_column(n = 1) %>% #for further counting the subjects number in each study
   group_by(research_ID) %>% 
   summarise_each (sum) %>% 
-  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #выбираем таксоны, которые обнаружены только в одном исследовании 
-  mutate (across(-c(1:2),
-                 function(x) x/n))
-  
-```
+  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #selecting "single study taxa"
+  mutate (across(-c(1:2), function(x) x/n)) %>% 
+  as_tibble() %>% flextable()
 
--   Определение процента людей, у которых данные таксоны не обнаружены ()
+#Determining the percentage of people in whom these taxa have not been detected
+#O_taxon <- 'Candidatus Abawacabacteria_O'
+#res_ID <- 1
 
-```{r, include=FALSE}
-
-O_taxon <- 'Candidatus Abawacabacteria_O'
-res_ID <- 1
-
-data_wide %>% 
-  select (research_ID, O_taxon) %>%
-  filter (research_ID == res_ID) %>% 
-  summarise(across (-1,
-              function (x) sum (x==0)/nrow (.) * 100)) %>% 
-  rename ("Taxon_zero_percentage, %" = O_taxon) 
+#data_wide %>% 
+  #select (research_ID, O_taxon) %>%
+  #filter (research_ID == res_ID) %>% 
+  #summarise(across (-1, function (x) sum (x==0)/nrow (.) * 100)) %>% 
+  #rename ("Taxon_zero_percentage, %" = O_taxon) 
 
 # Hypocreales_O - 41,7% нулей
 # Pleosporales_O - 41,7% нулей
@@ -438,58 +408,50 @@ data_wide %>%
 # Dothideales_O - 0% нулей
 # eub62A3_O - 15,2% нулей
 # LD1-PA32_O - 2,2% нулей
-
-rm (O_taxon, res_ID)
-
+  
 ```
 
-### Среднее содержание C_таксонов, которые были обнаружены только в одном исследовании
+- C-taxa
 
 ```{r}
 
 data_wide %>% 
   select (research_ID, ends_with("_C")) %>%
-  add_column(n = 1) %>% #колонка для дальнейшего подсчёта количества субъектов в исследовании
+  add_column(n = 1) %>% #for further counting the subjects number in each study
   group_by(research_ID) %>% 
   summarise_each (sum) %>% 
-  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #выбираем таксоны, которые обнаружены только в одном исследовании 
-  mutate (across(-c(1:2),
-                 function(x) x/n))
-  
-```
+  select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #selecting "single study taxa"
+  mutate (across(-c(1:2), function(x) x/n)) %>% 
+  as_tibble() %>% flextable()
 
--   Определение процента людей, у которых данные таксоны не обнаружены ()
+#Determining the percentage of people in whom these taxa have not been detected
+#С_taxon <- 'Dothideomycetes_C'
+#res_ID <- 2
 
-```{r, warning=FALSE, include=FALSE}
-
-С_taxon <- 'Dothideomycetes_C'
-res_ID <- 2
-
-data_wide %>% 
-  select (research_ID, С_taxon) %>%
-  filter (research_ID == res_ID) %>% 
-  summarise(across (-1,
-              function (x) sum (x==0)/nrow (.) * 100)) %>% 
-  rename ("Taxon_zero_percentage, %" = С_taxon) 
+#data_wide %>% 
+  #select (research_ID, С_taxon) %>%
+  #filter (research_ID == res_ID) %>% 
+  #summarise(across (-1, function (x) sum (x==0)/nrow (.) * 100)) %>% 
+  #rename ("Taxon_zero_percentage, %" = С_taxon) 
 
 # WWE3_C - 74,4% нулей
 # Eurotiomycetes_C - 19,4% нулей 
 # Dothideomycetes_C - 0% нулей 
-
-rm (С_taxon, res_ID)
-
+  
 ```
 
-### Среднее содержание P_таксонов, которые были обнаружены только в одном исследовании
+- P-taxa
 
-**P_таксонов, которые были обнаружены только в одном исследовании, нет**
+**"Single study P-taxa" have not been detected**
 
-    \## data_wide (not batched) \`
+    
+
+## data_wide_not_batched dataset
 
 ```{r}
 
 data_wide <- data_wide %>% 
-  select (!colnames (G_only_one) [- c (1,2)]) #удаление G_таксонов, которые обнаружены только в одном исследовании (все они в этом исследовании встречались редко - до 25% людей)
+  select (!colnames (G_only_one) [- c (1,2)]) #deleting of single study G-taxa (in this single study the taxa were present in no more than 25% of subjects)
 
 data_wide_not_batched <- data_wide  
 
@@ -498,15 +460,15 @@ write_rds(data_wide,
 
 ```
 
-# Кластеризация
+# Clustering before batch effect correction
 
-## Кластеризация родов (G-таксонов)
+## G-taxa clustering
 
-### AGNES (agglomerative clustering)
+### AGNES (euclidean distance matrix)
 
 ```{r, warning=FALSE, message=FALSE}
 
-clusters_number <- 4 #количество кластеров
+clusters_number <- 7 #number of clusters
 
 library(cluster)
 library(factoextra)
@@ -514,14 +476,14 @@ library(factoextra)
 G_scaled <- data_wide %>% 
   mutate(patient_ID = paste0("patient_", patient_ID)) %>% 
   column_to_rownames("patient_ID") %>% 
-  select (ends_with("_G")) %>% #выбираем только G-таксоны
-  scale () #нормируем данные
+  select (ends_with("_G")) %>% 
+  scale () 
 
 agnes <- G_scaled %>% 
-  dist (method = "euclidean") %>% #cоздаём матрицу дистанций
+  dist (method = "euclidean") %>% 
   as.matrix() %>%  
-  agnes( #выбираем Agglomerative clustering (иерархическая кластеризация снизу вверх)
-    diss = TRUE, #на вход подана dissimilarity matrix
+  agnes( #Agglomerative clustering
+    diss = TRUE, #dissimilarity matrix
     method = "ward")
 
 fviz_dend(agnes,
@@ -529,19 +491,20 @@ fviz_dend(agnes,
           rect = TRUE,
           k_colors = "jco",
           show_labels = TRUE,
-          label_cols = ifelse (data_wide[agnes$order,]$Health_state == "Health", "green", "red"),#цвет лейблов определяется по Health_state
-          cex = 0.2, #размер шрифта лейблов
-          main = "Дендрограмма кластеризации субъектов по количеству G-таксонов",
-          ylab = "Высота")
+          label_cols = ifelse (data_wide[agnes$order,]$Health_state == "Health", "green", "red"),
+          #labels colors = Health_state
+          cex = 0.2,
+          main = "Cluster dengrogram based on G-taxa abundance before batch effect correction",
+          ylab = "")
 
 ```
 
--   Сравнение полученных кластеров по основным переменным
+-   Comparison of the clusters
 
 ```{r, warning=FALSE, message=FALSE}
 
 data_wide %>% 
-  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% # Создаём новый столбец - вектор принадлежности к кластерам  
+  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% 
   select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
   tbl_summary(digits = list(all_continuous() ~ c(0, 0),
                             all_categorical() ~ c(0, 0)),
@@ -550,99 +513,33 @@ data_wide %>%
 
 ```
 
-### kMeans
-
-```{r}
-
-kmeans <- G_scaled %>% 
-  kmeans(centers = clusters_number, # Кол-во кластеров
-         iter.max = 20, # Максимальное кол-во итераций
-         nstart = 35) # Кол-во центройдов в начале
-
-  fviz_cluster(kmeans,data = G_scaled,
-               ellipse = FALSE,
-               show.clust.cent = FALSE,
-               geom = "point",
-               main = "Кластеризация субъектов по содержанию G-таксонов до batch-коррекции")
-
-```
-
-### Определение оптимального количества кластеров
-
--   методом локтя
-
-```{r}
-
-G_scaled %>% 
-fviz_nbclust(FUN = hcut, method = "wss") 
-
-```
-
--   с помощью коэффициента силуэта
-
-```{r}
-
-G_scaled %>% 
-  fviz_nbclust(FUN = hcut, method = "silhouette") 
-
-```
-
-### DBSCAN
-
--   определением оптимального размера радиуса (eps)
-
-```{r}
-
-G_scaled %>% 
-dbscan::kNNdistplot(minPts = 20)  # мин. количество субъектов в кластере
-
-abline(h=37, col = "red", lty = 2)
-
-```
-
-```{r}
-
-G_scaled %>%
-dbscan::dbscan(eps = 37, # радиус
-       minPts = 20) %>%  # мин. количество субъектов в кластере
-  fviz_cluster(
-    data = G_scaled, 
-    stand = TRUE,
-    ellipse = FALSE, 
-    show.clust.cent = FALSE,
-    geom = "point", 
-    palette = "jco", 
-    ggtheme = theme_classic())
-
-```
-
-### AGNES (несходство Брея - Кертиса)
-
--   с матрицей-дистанций с показателями несходства Брея --- Кертиса
+### AGNES (distance matrix for Bray-Curtis dissimilarity)
 
 ```{r, message=FALSE, warning=FALSE}
 
 agnes2 <- data_wide %>% 
   column_to_rownames("patient_ID") %>% 
   select (ends_with("_G")) %>% 
-  vegdist(method = "bray") %>% #cоздаём матрицу дистанций, рассчитывая показатель несходства Брея — Кертиса (Bray-Curtis dissimilarity, 0 - полное совпадение пациентов по составу микробиоты, 1 - полное несовпадение 
+  vegdist(method = "bray") %>% #distance matrix for Bray-Curtis dissimilarity:
+  #the Bray–Curtis dissimilarity is bounded between 0 and 1, where 0 means the two sites have the same composition , and 1 means the two sites do not share any species
   as.matrix() %>% 
-  agnes( #выбираем Agglomerative clustering (иерархическая кластеризация снизу вверх)
-    diss = TRUE, #на вход подана dissimilarity matrix
+  agnes( #Agglomerative clustering 
+    diss = TRUE, #dissimilarity matrix
     method = "ward")
 
 fviz_dend(agnes2, 
-          cex = 0.2, k = 3,
+          cex = 0.2, k = clusters_number,
           rect = TRUE,
           k_colors = "jco",
           color_labels_by_k = FALSE,
           label_cols = ifelse (data_wide[agnes2$order,]$Health_state == "Health", "green", "red"),
-          main = "Дендрограмма кластеризации субъектов по количеству G-таксонов",
-  ylab = "Высота",)
+          #labels colors = Health_state
+          main = "Cluster dengrogram based on G-taxa abundance before batch effect correction",
+          ylab = "")
 
 ```
 
--   Сравнение полученных кластеров по основным переменным
+-   Comparison of the clusters
 
 ```{r, warning=FALSE, message=FALSE}
 
@@ -655,60 +552,12 @@ fisher.test.simulate.p.values <- function(data, variable, by, ...) {
 }
 
 data_wide %>% 
-  add_column("Cluster" = cutree(agnes2, k = 3)) %>% # Создаём новый столбец - вектор принадлежности к кластерам  
+  add_column("Cluster" = cutree(agnes2, k = clusters_number)) %>%
   select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
   tbl_summary(digits = list(all_continuous() ~ c(0, 0),
                             all_categorical() ~ c(0, 0)),
               by = Cluster) %>% 
-  add_p(test = list(all_categorical() ~ "fisher.test.simulate.p.values"))  # this applies the custom test to all categorical variables
- 
-
-```
-
-## Кластеризация семейств (F-таксонов)
-
-### AGNES (agglomerative clustering)
-
-```{r, warning=FALSE, message=FALSE}
-
-clusters_number <- 2 #количество кластеров
-
-F_scaled <- data_wide %>% 
-  mutate(patient_ID = paste0("patient_", patient_ID)) %>% 
-  column_to_rownames("patient_ID") %>% 
-  select (ends_with("_F")) %>% #выбираем только G-таксоны
-  scale () #нормируем данные
-
-agnes <- F_scaled %>% 
-  dist (method = "euclidean") %>% #cоздаём матрицу дистанций
-  as.matrix() %>%  
-  agnes(
-    diss = TRUE, #на вход подана dissimilarity matrix
-    method = "ward")
-
-fviz_dend(agnes,
-          k = clusters_number,
-          rect = TRUE,
-          k_colors = "jco",
-          show_labels = TRUE,
-          label_cols = ifelse (data_wide[agnes$order,]$Health_state == "Health", "green", "red"),#цвет лейблов определяется по Health_state
-          cex = 0.2, #размер шрифта лейблов
-          main = "Кластеризация субъектов по содержанию G-таксонов до коррекции batch-эффекта",
-          ylab = "Высота")
-
-```
-
--   Сравнение полученных кластеров по основным переменным
-
-```{r, warning=FALSE, message=FALSE}
-
-data_wide %>% 
-  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% #Создаём новый столбец - вектор принадлежности к кластерам  
-  select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
-  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
-                            all_categorical() ~ c(0, 0)),
-              by = Cluster) %>% 
-  add_p()
+  add_p(test = list(all_categorical() ~ "fisher.test.simulate.p.values"))
 
 ```
 
@@ -716,146 +565,23 @@ data_wide %>%
 
 ```{r}
 
-kmeans <- F_scaled %>% 
-  kmeans(centers = clusters_number, # Кол-во кластеров
-         iter.max = 20, # Максимальное кол-во итераций
-         nstart = 35) # Кол-во центройдов в начале
+kmeans <- G_scaled %>% 
+  kmeans(centers = clusters_number,
+         iter.max = 20, nstart = 35) 
 
-  fviz_cluster(kmeans,data = F_scaled,
+  fviz_cluster(kmeans,data = G_scaled,
                ellipse = FALSE,
                show.clust.cent = FALSE,
                geom = "point",
-               main = "Кластеризация субъектов по F_таксонам")
+               main = "kMeans clustering based on G-taxa abundance before batch effect correction")
 
 ```
 
-### DBSCAN
 
--   определением оптимального размера радиуса (eps)
-
-```{r}
-
-F_scaled %>% 
-dbscan::kNNdistplot(minPts = 20)  # мин. количество субъектов в кластере
-
-abline(h=25, col = "red", lty = 2)
-
-```
-
-```{r}
-
-F_scaled %>%
-dbscan::dbscan(eps = 25, # радиус
-       minPts = 20) %>%  # мин. количество субъектов в кластере
-  fviz_cluster(
-    data = F_scaled, 
-    stand = TRUE,
-    ellipse = FALSE, 
-    show.clust.cent = FALSE,
-    geom = "point", 
-    palette = "jco", 
-    ggtheme = theme_classic())
-
-```
-
-## Кластеризация порядков (O-таксонов)
-
-### AGNES (agglomerative clustering)
-
-```{r, warning=FALSE, message=FALSE}
-
-clusters_number <- 2 #количество кластеров
-
-O_scaled <- data_wide %>% 
-  mutate(patient_ID = paste0("patient_", patient_ID)) %>% 
-  column_to_rownames("patient_ID") %>% 
-  select (ends_with("_O")) %>% #выбираем только G-таксоны
-  scale () #нормируем данные
-
-agnes <- O_scaled %>% 
-  dist (method = "euclidean") %>% #cоздаём матрицу дистанций
-  as.matrix() %>%  
-  agnes(
-    diss = TRUE, #на вход подана dissimilarity matrix
-    method = "ward")
-
-fviz_dend(agnes,
-          k = clusters_number,
-          rect = TRUE,
-          k_colors = "jco",
-          show_labels = TRUE,
-          label_cols = ifelse (data_wide[agnes$order,]$Health_state == "Health", "green", "red"),#цвет лейблов определяется по Health_state
-          cex = 0.2, #размер шрифта лейблов
-          main = "Дендрограмма кластеризации субъектов по количеству G-таксонов",
-          ylab = "Высота")
-
-```
-
--   Сравнение полученных кластеров по основным переменным
-
-```{r, warning=FALSE, message=FALSE}
-
-data_wide %>% 
-  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% #Создаём новый столбец - вектор принадлежности к кластерам  
-  select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
-  tbl_summary(digits = list(all_continuous() ~ c(0, 0),
-                            all_categorical() ~ c(0, 0)),
-              by = Cluster) %>% 
-  add_p()
-
-```
-
-### kMeans
-
-```{r}
-
-kmeans <- O_scaled %>% 
-  kmeans(centers = clusters_number, # Кол-во кластеров
-         iter.max = 20, # Максимальное кол-во итераций
-         nstart = 35) # Кол-во центройдов в начале
-
-  fviz_cluster(kmeans,data = O_scaled,
-               ellipse = FALSE,
-               show.clust.cent = FALSE,
-               geom = "point",
-               main = "Кластеризация субъектов по O_таксонам")
-
-```
-
-### DBSCAN
-
--   определением оптимального размера радиуса (eps)
-
-```{r}
-
-O_scaled %>% 
-dbscan::kNNdistplot(minPts = 20)  # мин. количество субъектов в кластере
-
-abline(h=18, col = "red", lty = 2)
-
-```
-
-```{r}
-
-O_scaled %>%
-dbscan::dbscan(eps = 18, #радиус
-       minPts = 20) %>%  #мин. количество субъектов в кластере
-  fviz_cluster(
-    data = O_scaled, 
-    stand = TRUE,
-    ellipse = FALSE, 
-    show.clust.cent = FALSE,
-    geom = "point", 
-    palette = "jco", 
-    ggtheme = theme_classic())
-
-```
-
- 
 
 ## Batch-effects correction
 
--   использовался пакет MBECS, пошаговое описание действий доступно по ссылке <https://github.com/rmolbrich/MBECS>
+the MBECS package was used, a step-by-step actions description is available at the link <https://github.com/rmolbrich/MBECS>
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 
@@ -864,14 +590,14 @@ dbscan::dbscan(eps = 18, #радиус
 library(MBECS)
 
 #1. Get started
-#Создание объекта класса MbecData
+#Creation of an object of class MbecData
 mbec.obj <- mbecProcessInput (
   list (
     #abundance table:
   combined_bacteria %>%
-    select (!colnames (G_only_one) [- c (1,2)]) %>%  #удаление G_таксонов, которые обнаружены только в одном исследовании
+    select (!colnames (G_only_one) [- c (1,2)]) %>%  #deleting of single study G-taxa
     select (where (function(x) 
-      sum (x != 0)/ nrow(.) * 100 >= 5)) %>% #выбор переменных, у которых менее 95% нули
+      sum (x != 0)/ nrow(.) * 100 >= 5)) %>% #selecting of variables with less than 95% zeros
     rename("sID" = "patient_ID") %>%
     mutate(sID = paste0 ("S", sID)) %>% 
     column_to_rownames('sID') %>% 
@@ -880,7 +606,7 @@ mbec.obj <- mbecProcessInput (
   #meta-data:
   combined_info %>%
     select (where (function(x) 
-      sum (!is.na(x))/ nrow(.) * 100 >= 5)) %>% #выбор переменных, у которых менее 95% NA
+      sum (!is.na(x))/ nrow(.) * 100 >= 5)) %>% #selecting of variables with less than 95% NA
     rename("sID" = "patient_ID") %>% 
     mutate(sID = as.character(sID),
            sID = paste0 ("S", sID),
@@ -889,12 +615,10 @@ mbec.obj <- mbecProcessInput (
     as.data.frame()          
   ))
 
-
 #2. Centered log-ratio transformation of the data
 mbec.obj <- mbecTransform(mbec.obj, 
                           method = "clr",
-                          offset = 0.0001) #смещение
-
+                          offset = 0.0001)
 
 #3. Preliminary report
 #mbecReportPrelim(input.obj=mbec.obj, 
@@ -907,27 +631,9 @@ mbec.obj <- mbecTransform(mbec.obj,
                  
 ```
 
-**Подготовлен Preliminary report (data/originals/).**
+**Preliminary report is available in /data/originals/.**
 
--   сравнение batch-эффектов от research_ID и Seq_region по их процентному вкладу в вариацию данных
-
-```{r, message=FALSE}
-
-mbecModelVariance(
-  input.obj=mbec.obj, 
-  model.vars=c('research_ID', 'Health_state'),
-  method="pvca",type="otu") %>% 
-  mbecPVCAStatsPlot() 
-
-mbecModelVariance(
-  input.obj=mbec.obj, 
-  model.vars=c('Seq_region', 'Health_state'),
-  method="pvca",type="otu") %>% 
-  mbecPVCAStatsPlot()
-
-```
-
--   коррекция batch-эффекта (research_ID)
+-   Correction of research_ID batch-effect
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -964,7 +670,7 @@ combined_bacteria_batched <- ps.cor.bat@otu_table %>%
 
 data_wide_batched <- combined_info %>% 
   select (where (function(x) 
-      sum (!is.na(x))/ nrow(.) * 100 >= 5)) %>% #выбор переменных, у которых менее 95% NA
+      sum (!is.na(x))/ nrow(.) * 100 >= 5)) %>% #selecting of variables with less than 95% NA
   left_join(combined_bacteria_batched)
 
 rm (combined_bacteria_batched)
@@ -2321,22 +2027,3 @@ summary(model_ser_G_1)
 
 Модель не показывает значимой ассоциации наличия серотонинпродуцирующих бактерий и состоянием здоровья человека (СРК/здоровый).
 
-```{r}
-
-O_scaled %>%
-dbscan::dbscan(eps = 18, #радиус
-       minPts = 20) %>%  #мин. количество субъектов в кластере
-  fviz_cluster(
-    data = O_scaled, 
-    stand = TRUE,
-    ellipse = FALSE, 
-    show.clust.cent = FALSE,
-    geom = "point", 
-    palette = "jco", 
-    ggtheme = theme_classic())
-
-```
-
-```{r}
-#test commit
-```
