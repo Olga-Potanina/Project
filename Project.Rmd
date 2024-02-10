@@ -1995,3 +1995,252 @@ summary(model_ser_G_1)
 
 Модель не показывает значимой ассоциации наличия серотонинпродуцирующих бактерий и состоянием здоровья человека (СРК/здоровый).
 
+#Boruta for Random Forest, only G-level taxa
+```{r}
+data_boruta <- data_wide_batched %>%
+  select(ends_with("_G") | "Health_state") # selection of taxa _G in dataset corrected for batch-effect (id reasearch)
+
+```
+
+
+```{r}
+library(Boruta)
+Boruta(Health_state ~ ., data_boruta, ntree = 1000, maxRuns = 1000) %>% #Boruta 
+  TentativeRoughFix() -> boruta_trained
+
+boruta_trained %>%
+  attStats() %>%
+  rownames_to_column("Переменная") %>%
+  mutate(`Переменная` = `Переменная` %>% fct_reorder(`meanImp`)) %>% 
+  filter(decision == "Confirmed") %>% 
+  select("Переменная") -> boruta_trained_confirmed #dataset with significant variables
+```
+
+
+## Boruta Visualization 
+```{r, fig.height=120, fig.width=90,}
+boruta_trained %>%
+  attStats() %>%
+  rownames_to_column("Переменная") %>%
+  mutate(`Переменная` = `Переменная` %>% fct_reorder(`meanImp`)) %>% filter(decision == "Confirmed") %>%
+  
+  ggplot(aes(y = `Переменная`, x = meanImp, colour = decision, size = 4)) +
+  geom_point(aes(size = 8)) +
+  geom_errorbar(aes(xmin = minImp, xmax = maxImp, width = 3)) +
+  xlab("Среднее снижение энтропии") +
+  labs(color = "Значимость переменной") +
+  theme(legend.position = "bottom", axis.text = element_text(size =70)) 
+```
+
+
+# Random Forest
+## RF Dataset
+
+```{r}
+
+data_wide_batched %>%
+  select(c(boruta_trained_batched_confirmed$Переменная, Health_state)) -> data_RF
+
+data_RF %>%
+  map(function(x) sum(is.na(x)) / length(x)) %>%
+  enframe() %>%
+  unnest(cols = value) %>%
+  arrange(desc(value))
+
+data_RF%>%
+  select(where(is.factor)) %>%
+  map(table)
+
+```
+
+## RF Test/train data
+```{r}
+library(rsample)
+data_RF <- data_RF[sample(nrow(data_RF)), ]
+
+split_train_RandFor <- initial_split(data_RF, strata = Health_state, prop = 0.9)
+
+data_RandFor_train <- split_train_RandFor %>% training()
+data_RandFor_test <- split_train_RandFor %>% testing() 
+
+```
+
+## RF Test data (only research ID = 4)
+```{r}
+data_RandFor_test_alternative <- data_wide %>% #data for test of model, only research 4, becase both value of variable Health_state
+  filter(research_ID == 4)
+```
+
+```{r}
+
+cat_metric <- yardstick::metric_set(
+  
+    yardstick::bal_accuracy,
+    yardstick::precision,
+    yardstick::recall,
+    yardstick::f_meas,
+    yardstick::sensitivity,
+    yardstick::specificity,
+    yardstick::j_index
+  
+  )
+
+```
+
+## RF Preparing recipe
+
+```{r}
+library(themis)
+library(embed)
+
+data_recipe_RandFor <- recipe(Health_state ~ ., data_RandFor_train) %>%
+  
+  step_impute_bag(all_numeric_predictors()) %>%
+  step_zv(all_predictors()) %>%
+  step_nzv(all_predictors()) %>%
+  step_lincomb(all_numeric_predictors()) %>%
+  step_normalize(all_numeric_predictors()) 
+
+```
+
+## RF Model
+
+```{r}
+library(parsnip)
+rf_model <- rand_forest(mode = "classification", mtry = tune(), trees = tune(), min_n = tune()) %>%
+  set_engine("ranger")
+
+```
+
+## RF Samples  
+
+```{r}
+cv_samples <- vfold_cv(data_RandFor_train, strata = Health_state, v = 10)
+```
+
+## RF Parameters grid 
+
+```{r}
+library(dials)
+
+parameters_grid <- grid_max_entropy(mtry(range = c(3, 10)), trees(), min_n(), size = 20)
+```
+
+## RF Pipeline
+
+```{r}
+library(workflows)
+reg_workflow <- workflow() %>%
+  add_recipe(data_recipe_RandFor) %>%
+  add_model(rf_model)
+```
+
+## RF Education of model 
+
+```{r}
+library(tidymodels)
+grid_search <- reg_workflow %>%
+  
+ tune_grid(
+    
+    object = reg_workflow,
+    resamples = cv_samples,
+    grid = parameters_grid,
+    control = control_grid(save_pred = TRUE),
+
+    metrics = metric_set(sensitivity, specificity, j_index)
+
+  )
+
+```
+
+## RF Visualization
+
+```{r}
+grid_search %>%
+  collect_metrics() %>%
+  ggplot(aes(trees, mean, color = .metric)) + 
+  geom_errorbar(aes(ymin = mean - std_err, ymax = mean + std_err), alpha = 0.8) +
+  geom_line(size = 1)
+
+```
+
+## RF Best model selection
+
+```{r}
+best_by_j_index <- grid_search %>% select_best("j_index")
+
+final_reg_model <- finalize_workflow(
+  
+  reg_workflow,
+  best_by_j_index
+  
+)
+
+```
+
+## RF Metrics comparison on train/test data
+```{r}
+
+# test data
+
+final_reg_model %>%
+  fit(data_RandFor_train) %>%
+  predict(data_RandFor_test_alternative) %>%
+  pull() -> final_RandFor_test_prediction
+
+metrics_on_test <- cat_metric(truth = truth_values, estimate = estimate_values, tibble(truth_values = data_RandFor_test_alternative$Health_state, estimate_values = final_RandFor_test_prediction)) %>% rename(test_estimate = `.estimate`) %>% select(!`.estimator`)
+
+# train data
+
+final_reg_model %>%
+  fit(data_RandFor_train) %>%
+  predict(data_RandFor_train) %>%
+  pull() -> final_RandFor_train_prediction
+
+metrics_on_train <- cat_metric(truth = truth_values, estimate = estimate_values, tibble(truth_values = data_RandFor_train$Health_state, estimate_values = final_RandFor_train_prediction)) %>% rename(train_estimate = `.estimate`) %>% select(!`.estimator`)
+
+# binding
+
+metrics_on_test %>%
+  left_join(metrics_on_train, by = ".metric") %>%
+  mutate(differencies = train_estimate - test_estimate)
+
+```
+
+## RF Model results
+
+```{r}
+
+last_fit(
+  
+  final_reg_model,
+  split_train_RandFor
+  
+) -> final_RF_model
+
+final_RF_model %>% write_rds("RandomForest.rds") #saving model
+
+final_RF_model %>%
+  extract_workflow() %>%
+  predict(data_RandFor_test_alternative, type = "class") %>%
+  pull() -> class_prediction
+
+final_RF_model %>%
+  extract_workflow() %>%
+  predict(data_RandFor_test_alternative, type = "prob") %>%
+  pull() -> prob_prediction
+
+RF_model_results <- tibble(truth = data_RandFor_test_alternative$Health_state,
+                            estimate = class_prediction,
+                            prob_yes = 1 - prob_prediction)
+
+cat_metric(truth = truth, estimate = estimate, RF_model_results) 
+
+RF_model_results %>%
+  roc_curve(truth = truth, prob_yes) %>%
+  autoplot()
+
+```
+
+
