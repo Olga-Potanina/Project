@@ -309,10 +309,10 @@ G_only_one <- data_wide %>%
   group_by(research_ID) %>% 
   summarise_each (sum) %>% 
   select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #selecting "single study taxa"
-  mutate (across(-c(1:2),
-                 function(x) x/n))
+  mutate (across(-c(1:2), function(x) x/n)) %>% 
+  mutate (across(-c(1:2), function(x) round (x,3))) 
 
-G_only_one %>% as_tibble() %>% flextable()
+G_only_one %>% as_tibble() %>% flextable() %>% set_caption("Mean percentage of single study G-taxa")
 
 #Determining the percentage of people in whom these taxa have not been detected
 G_taxon <- 'Ellin517_G'
@@ -352,7 +352,8 @@ data_wide %>%
   summarise_each (sum) %>% 
   select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #selecting "single study taxa"
   mutate (across(-c(1:2), function(x) x/n)) %>% 
-  as_tibble() %>% flextable()
+  mutate (across(-c(1:2), function(x) round (x,3))) %>% 
+  as_tibble() %>% flextable() %>% set_caption("Mean percentage of single study F-taxa")
 
 #Determining the percentage of people in whom these taxa have not been detected
 #F_taxon <- 'Iamiaceae_F'
@@ -386,7 +387,8 @@ data_wide %>%
   summarise_each (sum) %>% 
   select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #selecting "single study taxa"
   mutate (across(-c(1:2), function(x) x/n)) %>% 
-  as_tibble() %>% flextable()
+  mutate (across(-c(1:2), function(x) round (x,3))) %>% 
+  as_tibble() %>% flextable() %>% set_caption("Mean percentage of single study O-taxa")
 
 #Determining the percentage of people in whom these taxa have not been detected
 #O_taxon <- 'Candidatus Abawacabacteria_O'
@@ -422,7 +424,8 @@ data_wide %>%
   summarise_each (sum) %>% 
   select (research_ID, n, where (function(x) sum (x!=0) == 1)) %>%  #selecting "single study taxa"
   mutate (across(-c(1:2), function(x) x/n)) %>% 
-  as_tibble() %>% flextable()
+   mutate (across(-c(1:2), function(x) round (x,3))) %>% 
+  as_tibble() %>% flextable() %>% set_caption("Mean percentage of single study C-taxa")
 
 #Determining the percentage of people in whom these taxa have not been detected
 #С_taxon <- 'Dothideomycetes_C'
@@ -461,8 +464,6 @@ write_rds(data_wide,
 ```
 
 # Clustering before batch effect correction
-
-## G-taxa clustering
 
 ### AGNES (euclidean distance matrix)
 
@@ -579,7 +580,7 @@ kmeans <- G_scaled %>%
 
 
 
-## Batch-effects correction
+# Batch-effects correction
 
 the MBECS package was used, a step-by-step actions description is available at the link <https://github.com/rmolbrich/MBECS>
 
@@ -594,19 +595,16 @@ library(MBECS)
 mbec.obj <- mbecProcessInput (
   list (
     #abundance table:
-  combined_bacteria %>%
-    select (!colnames (G_only_one) [- c (1,2)]) %>%  #deleting of single study G-taxa
-    select (where (function(x) 
-      sum (x != 0)/ nrow(.) * 100 >= 5)) %>% #selecting of variables with less than 95% zeros
+    data_wide %>% 
+    select (patient_ID, Archaea, Bacteria, ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))) %>%
     rename("sID" = "patient_ID") %>%
     mutate(sID = paste0 ("S", sID)) %>% 
     column_to_rownames('sID') %>% 
     as.data.frame(),
   
   #meta-data:
-  combined_info %>%
-    select (where (function(x) 
-      sum (!is.na(x))/ nrow(.) * 100 >= 5)) %>% #selecting of variables with less than 95% NA
+  data_wide %>% 
+    select (any_of(colnames (combined_info))) %>% 
     rename("sID" = "patient_ID") %>% 
     mutate(sID = as.character(sID),
            sID = paste0 ("S", sID),
@@ -633,9 +631,9 @@ mbec.obj <- mbecTransform(mbec.obj,
 
 **Preliminary report is available in /data/originals/.**
 
--   Correction of research_ID batch-effect
+-   Correction of `research_ID` batch-effect
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, warning=FALSE, error=FALSE}
 
 #Run corrections
 mbec.obj <- mbecRunCorrections(
@@ -659,8 +657,8 @@ library (datawizard)
 
 #Retrieve corrrected data
 ps.cor.bat <- mbecGetPhyloseq(mbec.obj, 
-                          type="cor",
-                          label="bat") #which type of data to add (correction)
+                          type="cor", #which type of data to add
+                          label="bat") #specifies the name within the list
 
 combined_bacteria_batched <- ps.cor.bat@otu_table %>% 
   as.data.frame() %>% 
@@ -668,18 +666,22 @@ combined_bacteria_batched <- ps.cor.bat@otu_table %>%
   mutate (patient_ID = sub ("S", "", patient_ID),
           patient_ID = as.numeric(patient_ID))
 
-data_wide_batched <- combined_info %>% 
-  select (where (function(x) 
-      sum (!is.na(x))/ nrow(.) * 100 >= 5)) %>% #selecting of variables with less than 95% NA
+data_wide_batched <- data_wide %>% 
+  select (any_of(colnames (combined_info))) %>% 
   left_join(combined_bacteria_batched)
 
 rm (combined_bacteria_batched)
+
+data_wide <- data_wide_batched  
+
+write_rds(data_wide, 
+          file = "data/originals/data_wide.rds")
 
 ```
 
 ####Principal Component Analysis
 
--   Principal Component Analysis *до* коррекции batch-эффекта (research_ID)
+-   before the batch effect correction
 
 ```{r, message=FALSE, warning=FALSE, error=FALSE}
 
@@ -690,24 +692,25 @@ plot <- mbecPCA(input.obj=mbec.obj,
 ggsave("data/pictures/PCA_befor_batching.jpeg", plot = plot)
 ```
 
--   Principal Component Analysis *после* коррекции batch-эффекта (research_ID)
+-   after the batch effect correction
 
 ```{r, message=FALSE, warning=FALSE, error=FALSE}
 
 plot <- mbecPCA(input.obj=mbec.obj, 
         model.vars=c('research_ID', 'Health_state'),
         type="cor", label = "bat",
-        pca.axes=c(1,2), return.data = FALSE)  
+        pca.axes=c(1,2), return.data = FALSE)
 
 ggsave("data/pictures/PCA_after_batching.jpeg", plot = plot)
 
 ```
 
-####Heatmap
+####Heatmap of the top 10 most variable taxa
 
--   Heatmap содержания 10-ти наиболее вариабельных таксонов *до* коррекции batch-эффекта (research_ID)
+- before the batch effect correction
 
 ```{r}
+
 mbecHeat(input.obj=mbec.obj, method = "TOP", n = 10, 
          model.vars=c('research_ID', 'Health_state'),
          center = TRUE, scale = TRUE, 
@@ -716,7 +719,7 @@ mbecHeat(input.obj=mbec.obj, method = "TOP", n = 10,
 
 ```
 
--   Heatmap содержания 10-ти наиболее вариабельных таксонов *после* коррекции batch-эффекта (research_ID)
+- after the batch effect correction
 
 ```{r}
 mbecHeat(input.obj=mbec.obj, method = "TOP", n = 10, 
@@ -726,28 +729,21 @@ mbecHeat(input.obj=mbec.obj, method = "TOP", n = 10,
          return.data = FALSE)
 ```
 
-## Кластеризация родов (G-таксонов) после коррекции batch-эффекта (research_ID)
-
-### AGNES (agglomerative clustering)
+### AGNES (euclidean distance matrix) after the batch effect correction
 
 ```{r, warning=FALSE, message=FALSE}
-
-clusters_number <- 4 #количество кластеров
-
-library(cluster)
-library(factoextra)
 
 G_scaled <- data_wide_batched %>% 
   mutate(patient_ID = paste0("patient_", patient_ID)) %>% 
   column_to_rownames("patient_ID") %>% 
-  select (ends_with("_G")) %>% #выбираем только G-таксоны
-  scale () #нормируем данные
+  select (ends_with("_G")) %>% 
+  scale () 
 
 agnes <- G_scaled %>% 
-  dist (method = "euclidean") %>% #cоздаём матрицу дистанций
+  dist (method = "euclidean") %>%
   as.matrix() %>%  
-  agnes( #выбираем Agglomerative clustering (иерархическая кластеризация снизу вверх)
-    diss = TRUE, #на вход подана dissimilarity matrix
+  agnes( #gglomerative clustering
+    diss = TRUE, #dissimilarity matrix
     method = "ward")
 
 fviz_dend(agnes,
@@ -755,24 +751,24 @@ fviz_dend(agnes,
           rect = TRUE,
           k_colors = "jco",
           show_labels = TRUE,
-          label_cols = ifelse (data_wide_batched[agnes$order,]$Health_state == "Health", "green", "red"),#цвет лейблов определяется по Health_state
-          cex = 0.2, #размер шрифта лейблов
-          main = "Кластеризация субъектов по содержанию G-таксонов после batch-коррекции",
-          ylab = "Высота")
+          label_cols = ifelse (data_wide_batched[agnes$order,]$Health_state == "Health", "green", "red"),#labels color = Health_state
+          cex = 0.2, 
+          main = "Cluster dengrogram based on G-taxa abundance after batch effect correction",
+          ylab = "")
 
 ```
 
--   Сравнение полученных кластеров по основным переменным
+-   Comparison of the clusters
 
 ```{r, warning=FALSE, message=FALSE}
 
 data_wide %>% 
-  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>% # Создаём новый столбец - вектор принадлежности к кластерам  
+  add_column("Cluster" = cutree(agnes, k = clusters_number)) %>%
   select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
   tbl_summary(digits = list(all_continuous() ~ c(0, 0),
                             all_categorical() ~ c(0, 0)),
               by = Cluster) %>% 
-  add_p()
+  add_p(test = list(all_categorical() ~ "fisher.test.simulate.p.values"))
 
 ```
 
@@ -781,31 +777,29 @@ data_wide %>%
 ```{r}
 
 kmeans <- G_scaled %>% 
-  kmeans(centers = clusters_number, # Кол-во кластеров
-         iter.max = 20, # Максимальное кол-во итераций
-         nstart = 35) # Кол-во центройдов в начале
+  kmeans(centers = clusters_number, 
+         iter.max = 20, 
+         nstart = 35) 
 
   fviz_cluster(kmeans,data = G_scaled,
                ellipse = FALSE,
                show.clust.cent = FALSE,
                geom = "point",
-               main = "Кластеризация субъектов по содержанию G-таксонов до коррекции batch-эффекта")
+               main = "kMeans clustering based on G-taxa abundance after batch effect correction")
       
 ```
 
-### AGNES (несходство Брея --- Кертиса)
-
--   с матрицей-дистанций с показателями несходства Брея --- Кертиса
+### AGNES (distance matrix Bray-Curtis dissimilarity)
 
 ```{r, message=FALSE, warning=FALSE}
 
 agnes2 <- data_wide_batched %>% 
   column_to_rownames("patient_ID") %>% 
   select (ends_with("_G")) %>% 
-  vegdist(method = "bray") %>% #cоздаём матрицу дистанций, рассчитывая показатель несходства Брея — Кертиса (Bray-Curtis dissimilarity, 0 - полное совпадение пациентов по составу микробиоты, 1 - полное несовпадение 
+  vegdist(method = "bray") %>%
   as.matrix() %>% 
-  agnes( #выбираем Agglomerative clustering (иерархическая кластеризация снизу вверх)
-    diss = TRUE, #на вход подана dissimilarity matrix
+  agnes( #Agglomerative clustering 
+    diss = TRUE, #dissimilarity matrix
     method = "ward")
 
 fviz_dend(agnes2, 
@@ -813,47 +807,32 @@ fviz_dend(agnes2,
           rect = TRUE,
           k_colors = "jco",
           color_labels_by_k = FALSE,
-          label_cols = case_when (data_wide_batched[agnes2$order,]$Age_range == "> 43" ~ "red",
-                                  data_wide_batched[agnes2$order,]$Age_range == "16-43" ~ "green",
-                                  TRUE ~ "white"),
-          main = "Дендрограмма кластеризации субъектов по количеству G-таксонов",
-          ylab = "Высота")
+          label_cols = ifelse (data_wide[agnes2$order,]$Health_state == "Health", "green", "red"),
+          #labels colors = Health_state
+          main = "Cluster dengrogram based on G-taxa abundance after batch effect correction",
+          ylab = "")
 
 ```
 
--   Сравнение полученных кластеров по основным переменным
+- Comparison of the clusters
 
 ```{r, warning=FALSE, message=FALSE}
 
 data_wide %>% 
-  add_column("Cluster" = cutree(agnes2, k = clusters_number)) %>% # Создаём новый столбец - вектор принадлежности к кластерам  
+  add_column("Cluster" = cutree(agnes2, k = clusters_number)) %>%
   select(any_of(colnames (combined_info)), Cluster, - patient_ID) %>% 
   tbl_summary(digits = list(all_continuous() ~ c(0, 0),
                             all_categorical() ~ c(0, 0)),
               by = Cluster) %>% 
-  add_p()
+  add_p(test = list(all_categorical() ~ "fisher.test.simulate.p.values"))
 
 ```
 
-## data_wide (batched)
-
-\`
-
-```{r}
-
-
-data_wide <- data_wide_batched  
-
-write_rds(data_wide, 
-          file = "data/originals/data_wide.rds")
-
-```
 
 ## bac_functions dataset
 
 ```{r}
 
-# Чтение листов Excel-файла с функциями бактерий и их объединение
 path <- "data/raw/Bacterial group functions.xlsx"
 taxon <- c ("TaxonName", "Rank")
 
@@ -893,32 +872,20 @@ rm (path, taxon, neuromediators, probiotics, special_properties, vitamins, habbi
 
 ## data_long
 
--   Перевод `data_wide` в длинный формат (`data_long`), объединение `data_long` и `bac_functions`
-
 ```{r data_long, warning=FALSE}
 
-# Создание датасета в длинном формате
+# Сonverting the data_wide to a long format
 data_long <- data_wide %>% 
   pivot_longer(ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")),
-               names_to = "Taxon", values_to = "Percentage")
+               names_to = "Taxon", values_to = "Percentage") %>% 
+  left_join (bac_functions, by = "Taxon") #combining with `bac_functions` datasets
 
-#Перезапись data_long с добавлением функций бактерий
-data_long <- data_long %>% 
-  left_join (bac_functions, by = "Taxon")
-
-#Сохранение data_long.rds
 write_rds(data_long, 
           file = "data/originals/data_long.rds",
           compress = "gz") 
 
-```
-
--   Создание отдельных длинных датасетов для каждого таксона
-
-```{r}
-
+#Creation a long dataset for each taxon
 G_long <- data_long %>% subset(grepl("_G", Taxon)) 
-# %>% select (where (function(x) sum (is.na(x))/ nrow(.) * 100 < threshold_percent))
 F_long <- data_long %>% subset(grepl("_F", Taxon))
 C_long <- data_long %>% subset(grepl("_C", Taxon))
 O_long <- data_long %>% subset(grepl("_O", Taxon))
@@ -937,7 +904,8 @@ write_rds(P_long,
 
 ```
 
-# Анализ
+
+# Analysis
 
 ## Сравнение среднего общего содержания G_таксонов с особыми свойствами
 
