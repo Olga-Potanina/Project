@@ -57,7 +57,7 @@ The assessment is presented as the mean percentage difference between the Health
 | 0.086 | 0.056 | 0.115 | <0.001 | Senegalimassilia_G | **<0.001** |
 | 0.065 | 0.038 | 0.093 | <0.001 | Solobacterium_G | **0.001** |
 | 0.058 | 0.044 | 0.071 | <0.001 | Acidaminobacter_G | **<0.001** |
-| -0.050 | -0.066 | -0.033 | <0.001 | Alkaliflexus_G | <0.001 |
+| -0.050 | -0.066 | -0.033 | <0.001 | Alkaliflexus_G | **<0.001** |
 
 *the Holm correction
 
