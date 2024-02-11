@@ -852,19 +852,19 @@ vitamins <- read_xlsx (path, 5) %>%
                values_fn = function(x) ifelse(is.na (x), NA, 1))
 
 habbits <- read_xlsx (path, 7) %>%
-  unique() %>% #удаление повторяющихся строк 
+  unique() %>% #deleting duplicate rows
   pivot_wider(names_from = Habbit, values_from = Habit_state)
 
-bac_functions <- read_xlsx (path, 1) %>% #Патогены и нежелательные
-  full_join(neuromediators, by = taxon) %>% #Нейромедиаторы
-  full_join(probiotics, by = taxon) %>% #Пробиотики
-  full_join(special_properties, by = taxon) %>% #С особыми свойствами
-  full_join(vitamins, by = taxon) %>%  #Витамины
-  full_join(read_xlsx (path, 6), by = taxon) %>% #Продуценты КЦДК
-  full_join(habbits, by = taxon) %>% #Вредные привычки
+bac_functions <- read_xlsx (path, 1) %>% #Pathogens and undesirable
+  full_join(neuromediators, by = taxon) %>% #Neurotransmitters
+  full_join(probiotics, by = taxon) %>% #Probiotics
+  full_join(special_properties, by = taxon) %>% #With special properties
+  full_join(vitamins, by = taxon) %>%  #Vitamins
+  full_join(read_xlsx (path, 6), by = taxon) %>% #Producers of short-chain fatty acids
+  full_join(habbits, by = taxon) %>% #Bad habits
   
   unite("Taxon", TaxonName, Rank, sep = "_") %>% 
-  filter (Taxon != "Blautia obeum_S") %>% #для данного таксона противоречивая информация в Продуценты КЦЖК
+  filter (Taxon != "Blautia obeum_S") %>% #for this taxon, there is conflicting information in the Producers of SCFA
   mutate_all(as.factor)
 
 rm (path, taxon, neuromediators, probiotics, special_properties, vitamins, habbits)
@@ -907,7 +907,7 @@ write_rds(P_long,
 
 # Analysis
 
-## Сравнение среднего общего содержания G_таксонов с особыми свойствами
+## Total percentage means IBS/healthy comparison for G-taxa with special properties 
 
 ```{r, message=FALSE}
 
@@ -997,105 +997,12 @@ comparison_in_total %>%
 
 ```
 
-## Факторный анализ
-
--   Проведем множественное сравнение каждого таксона из `combined_bacteria` с по группе `Health_state` из `combined_info` без учета таксономического уровня.
-
-```{r}
-# Создание нового датасета для сохранения результатов
-result_dataset <- data.frame(
-  Variable_Name = character(),
-  Test_Type = character(),
-  P_Value = numeric(),
-  Normal_Distribution = character(),
-  stringsAsFactors = FALSE
-)
-
-alpha = 0.05
-
-# Объединяем датасеты по patient_id 
-combined_data <- data_wide %>%
-  select(Health_state,
-    ends_with(c("_D", "_P", "_O", "_C", "_F", "_G")))
-
-combined_bacteria_clean <- combined_data
-
-# Получаем список переменных из датасета combined_bacteria, исключая "patient_ID"
-values_to_exclude <- c("patient_ID", "Seq_date", "Age")
-variable_names <- setdiff(names(combined_bacteria_clean), values_to_exclude)
-
-# Проходим по каждой переменной
-for (variable in variable_names) {
-  # Фильтрация данных (исключаем строки с NA и 0 в текущей переменной)
-  filtered_data <- combined_data[!is.na(combined_data[[variable]]) & combined_data[[variable]] != 0, ]
-  #print(variable)
-  #print(filtered_data)
-
-  # Проверим что датасет filtered_data не пустой и что количество групп сравнения более 1, в нашем случае их 2 :)
-  if (nrow(filtered_data) > 0 & length(unique(filtered_data$Health_state)) > 1) {
-    
-  # Check if there is sufficient variability in the data
-  if (length(unique(filtered_data$Health_state)) > 1) {
-    # Проверка на нормальность
-    shapiro_test_result <- try(shapiro.test(filtered_data[[variable]]), silent = TRUE)
-    if (inherits(shapiro_test_result, "try-error")) {
-      warning(paste("Skipping Shapiro-Wilk test for variable", variable, "due to an error."))
-      next
-    }
-    p_value_shapiro <- shapiro_test_result$p.value
-
-    # Выбор соответствующего статистического теста
-    if (p_value_shapiro > 0.05) {
-      # Если нормальное распределение, провести дисперсионный анализ
-      model <- aov(filtered_data[[variable]] ~ Health_state, data = filtered_data)
-      summary_list <- summary(model)
-      test_type <- "ANOVA"
-    } else {
-      # Если не нормальное распределение, использовать тест Краскела-Уоллиса
-      tryCatch({
-        model <- kruskal.test(filtered_data[[variable]] ~ Health_state, data = filtered_data)
-        test_type <- "Kruskal-Wallis"
-      }, error = function(e) {
-        warning(paste("Skipping Kruskal-Wallis test for variable", variable, "due to an error:", conditionMessage(e)))
-        next
-      })
-    }
-
-    # Добавление результатов выбранного теста в датасет
-    result_dataset <- rbind(result_dataset, 
-                            data.frame(Variable_Name = variable,
-                                       Test_Type = test_type,
-                                       P_Value = ifelse(test_type == "ANOVA", summary_list[[1]]$"Pr(>F)"[1], model$p.value),
-                                       Normal_Distribution = ifelse(p_value_shapiro > 0.05, "Yes", "No")))
-  } else {
-    # If there is no variability, skip the tests
-    warning(paste("Skipping tests for variable", variable, "as there is not enough variability in the data."))
-  }
-  }}
-
-# Добавление столбца с поправкой Бонферрони
-result_dataset$Adjusted_P_Value_Bonferroni <- p.adjust(result_dataset$P_Value, method = "bonferroni")
-
-# Добавление столбца с поправкой Холма
-result_dataset$Adjusted_P_Value_Holm <- p.adjust(result_dataset$P_Value, method = "holm")
-
-# Добавление столбца с поправкой Бенджамини-Хохберга
-result_dataset$Adjusted_P_Value_BH <- p.adjust(result_dataset$P_Value, method = "BH")
-
-result_dataset$test_pass = ifelse(result_dataset$Adjusted_P_Value_Bonferroni < alpha & result_dataset$Adjusted_P_Value_Holm < alpha & result_dataset$Adjusted_P_Value_BH < alpha, "Y", "N")
-
-result_dataset_pass <- result_dataset %>% filter(test_pass == "Y")
-
-# Вывод результатов
-print(result_dataset_pass)
-
-```
 
 -   Посмотрим на данные здоровых людей и людей с СРК как на многомерный вектор по всем таксонам и группам
 
 ```{r, warning=FALSE}
 
-combined_bacteria_G <- combined_bacteria_clean %>%
+combined_bacteria_G <- data_wide %>%
   select(Health_state, ends_with("_G"))
 
 d <- dist(combined_bacteria_G) # euclidean distances between the rows
@@ -1106,13 +1013,14 @@ df_mds <- data.frame(
   y = fit$points[,2]
   )  
 
-df_full <- cbind(df_mds, combined_info) %>% mutate(Health_state_n = case_when(Health_state == "Health"  ~ 0,
-                                                                              Health_state == "Disease" ~ 1))
+df_full <- cbind(df_mds, combined_info) %>% 
+  mutate(Health_state_n = case_when(Health_state == "Health"  ~ 0,
+  Health_state == "Disease" ~ 1))
 
 ggplot(df_full, aes(x = x, y = y, color = Health_state)) +
   geom_point() +
   theme_bw() +
-  ggtitle("Распределение вектора таксонов в зависимости от группы пациентов")
+  ggtitle("Распределение вектора G-таксонов в зависимости от группы пациентов")
 ```
 
 -   Используя метод пермутаций проверим отличаются ли группы в зависимомти от Health_state
@@ -1854,31 +1762,41 @@ perform_permutation_test <- function(data, filter_pattern) {
 }
 
 # Пример вызова функции с использованием другого фильтра
-perform_permutation_test(combined_bacteria_clean, "_G")
+perform_permutation_test(data_wide %>%
+  select(Health_state,
+    ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))), "_G")
 ```
 
 ## F - Family (семейство)
 
 ```{r}
-perform_permutation_test(combined_bacteria_clean, "_F")
+perform_permutation_test(data_wide %>%
+  select(Health_state,
+    ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))), "_F")
 ```
 
 ## C - Class (класс)
 
 ```{r}
-perform_permutation_test(combined_bacteria_clean, "_C")
+perform_permutation_test(data_wide %>%
+  select(Health_state,
+    ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))), "_C")
 ```
 
 ## O - Order (порядок)
 
 ```{r}
-perform_permutation_test(combined_bacteria_clean, "_O")
+perform_permutation_test(data_wide %>%
+  select(Health_state,
+    ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))), "_O")
 ```
 
 ## P - Phylum (тип)
 
 ```{r}
-perform_permutation_test(combined_bacteria_clean, "_P")
+perform_permutation_test(data_wide %>%
+  select(Health_state,
+    ends_with(c("_D", "_P", "_O", "_C", "_F", "_G"))), "_P")
 ```
 
 ### Влияние серотонинпродуцирующих бактерий
@@ -2039,7 +1957,7 @@ boruta_trained %>%
 ```{r}
 
 data_wide_batched %>%
-  select(c(boruta_trained_batched_confirmed$Переменная, Health_state)) -> data_RF
+  select(c(boruta_trained_confirmed$Переменная, Health_state)) -> data_RF
 
 data_RF %>%
   map(function(x) sum(is.na(x)) / length(x)) %>%
